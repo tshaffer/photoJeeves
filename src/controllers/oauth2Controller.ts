@@ -20,7 +20,7 @@ export function getAccessToken(): string {
   return accessToken;
 }
 
-export function getCode(req: Request, response: Response) {
+export function getCode(request: Request, response: Response) {
   console.log('invoke oauth2Client.generateAuthUrl');
   const oauth2Url = oauth2Client.generateAuthUrl({
     access_type: 'online',

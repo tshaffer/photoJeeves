@@ -4,7 +4,8 @@ import MediaItem from '../models/mediaItem';
 
 export function start(request: Request, response: Response) {
 
-  // response.render('home');
+  // mongoose code to perform bulk update
+  // MediaItem.updateMany({}, { $set: { downloaded: true } });
 
   MediaItem.count({}, (err, count) => {
     if (err) { debugger }
@@ -18,5 +19,4 @@ export function start(request: Request, response: Response) {
         });
     });
   });
-
 }

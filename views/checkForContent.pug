@@ -3,3 +3,10 @@ extends layout
 block content
   h1 PhotoJeeves
   p= 'Checking for new content...'
+  p= 'Number of local media items: ' + dbMediaItemCount
+  p= 'Number of media items in the cloud: ' + cloudMediaItemsCount
+  p= 'Number of local albums: ' + dbAlbumCount
+  p= 'Number of albums in the cloud: ' + cloudAlbumsCount
+  p= 'Number of existing albums that need updates: ' + outOfDateAlbumsCount
+  != console.log('my pizza')
+

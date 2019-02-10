@@ -7,7 +7,12 @@ import * as oauth2Controller from './oauth2Controller';
 
 export function checkForContent(request: Request, response: Response) {
 
-  response.render('checkForContent');
+  // updateDisplay(response, '', '', '', '', '');
+
+  MediaItem.find({ 'downloaded': true }, 'fileName', (err, downloadedMediaItems) => {
+    if (err) debugger;
+    updateDisplay(response, downloadedMediaItems.length, '', '', '', '');
+  });
 
   // only looking for items to download; i.e., not currently a sync type function (no deletions)
   //
@@ -16,7 +21,7 @@ export function checkForContent(request: Request, response: Response) {
   //    db
   // determine delta
 
-  getGooglePhotoMediaItems().then( (mediaItems: any[]) => {
+  getGooglePhotoMediaItems().then((mediaItems: any[]) => {
     console.log(mediaItems);
     debugger;
   });
@@ -63,3 +68,19 @@ function getGooglePhotoMediaItems(): Promise<any> {
   });
 }
 
+function updateDisplay(
+  response: Response,
+  dbMediaItemCount: string | number,
+  cloudMediaItemsCount: string | number,
+  dbAlbumCount: string | number,
+  cloudAlbumsCount: string | number,
+  outOfDateAlbumsCount: string | number,
+) {
+  response.render('checkForContent', {
+    dbMediaItemCount,
+    cloudMediaItemsCount,
+    dbAlbumCount,
+    cloudAlbumsCount,
+    outOfDateAlbumsCount,
+  });
+}

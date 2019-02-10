@@ -2,7 +2,6 @@ import { Request, Response, response } from 'express';
 import express from 'express';
 
 import { getCode, handleAuthCallback } from '../controllers/oauth2Controller';
-import { startSync } from '../controllers/syncerController';
 import { start } from '../controllers/homeController';
 
 
@@ -18,9 +17,6 @@ export class Routes {
       app.route('/')
       .get((request: Request, response: Response) => {
         getCode(request, response);
-        // res.status(200).send({
-        //     message: 'Default GET request successfulll!!!!',
-        // });
       });
 
       // express.Router().get('/authCallback.*', handleAuthCallback);
@@ -29,7 +25,6 @@ export class Routes {
         handleAuthCallback(request, response);
       });
 
-      express.Router().get('/syncer', startSync);
       express.Router().get('/home', start);
     }
 }

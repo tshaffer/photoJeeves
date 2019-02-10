@@ -10,7 +10,7 @@ export class Routes {
     }
 
     createRoutes(app: express.Application) {
-      console.log(getCode);
+      
       // express.Router().get('/', getCode);
       app.route('/')
       .get((request: Request, response: Response) => {
@@ -19,7 +19,13 @@ export class Routes {
         //     message: 'Default GET request successfulll!!!!',
         // });
       });
-      express.Router().get('/authCallback.*', handleAuthCallback);
+
+      // express.Router().get('/authCallback.*', handleAuthCallback);
+      app.route('/authCallback.*')
+      .get((request: Request, response: Response) => {
+        handleAuthCallback(request, response);
+      });
+
       express.Router().get('/syncer', startSync);
     }
 }

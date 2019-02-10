@@ -5,13 +5,35 @@ import MediaItem from '../models/mediaItem';
 
 import * as oauth2Controller from './oauth2Controller';
 
+import WebSocket from 'ws';
+
 export function checkForContent(request: Request, response: Response) {
 
-  // updateDisplay(response, '', '', '', '', '');
+  const wss = new WebSocket.Server({ port: 8080 })
+
+  console.log('setup wss');
+  wss.on('connection', ws => {
+    ws.on('message', message => {
+      console.log(`Received message => ${message}`)
+    })
+    console.log('connection on');
+    const messageData = {
+      type: 'OverallStatus',
+      data: 'Preparing download...'
+    };
+    ws.send(JSON.stringify(messageData));
+  });
+
+  response.render('checkForContent', {
+    dbMediaItemCount: '',
+    cloudMediaItemsCount: '',
+    dbAlbumCount: '',
+    cloudAlbumsCount: '',
+    outOfDateAlbumsCount: '',
+  });
 
   MediaItem.find({ 'downloaded': true }, 'fileName', (err, downloadedMediaItems) => {
     if (err) debugger;
-    updateDisplay(response, downloadedMediaItems.length, '', '', '', '');
   });
 
   // only looking for items to download; i.e., not currently a sync type function (no deletions)
@@ -21,10 +43,10 @@ export function checkForContent(request: Request, response: Response) {
   //    db
   // determine delta
 
-  getGooglePhotoMediaItems().then((mediaItems: any[]) => {
-    console.log(mediaItems);
-    debugger;
-  });
+  // getGooglePhotoMediaItems().then((mediaItems: any[]) => {
+  //   console.log(mediaItems);
+  //   debugger;
+  // });
 }
 
 function getGooglePhotoMediaItems(): Promise<any> {
@@ -65,22 +87,5 @@ function getGooglePhotoMediaItems(): Promise<any> {
 
     processGetMediaFiles('');
 
-  });
-}
-
-function updateDisplay(
-  response: Response,
-  dbMediaItemCount: string | number,
-  cloudMediaItemsCount: string | number,
-  dbAlbumCount: string | number,
-  cloudAlbumsCount: string | number,
-  outOfDateAlbumsCount: string | number,
-) {
-  response.render('checkForContent', {
-    dbMediaItemCount,
-    cloudMediaItemsCount,
-    dbAlbumCount,
-    cloudAlbumsCount,
-    outOfDateAlbumsCount,
   });
 }

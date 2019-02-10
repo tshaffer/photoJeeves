@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 import { Request, Response } from "express";
 import * as syncer from './syncerController';
+import * as homeController from './homeController';
 
 const clientId = '1006826584050-4cad42jrlnu0bmophpuq7rt2nupslmmp.apps.googleusercontent.com';
 const clientSecret = 'N3XZuKHm04cMPz8yo6wcgmBw';
@@ -57,8 +58,10 @@ export function handleAuthCallback(request: Request, response: Response) {
 
     accessToken = access_token;
 
-    // response.redirect('/syncerHome');
-    syncer.startSync(request, response);
+    // response.redirect('/home');
+    homeController.start(request, response);
+
+    // syncer.startSync(request, response);
   });
 }
 

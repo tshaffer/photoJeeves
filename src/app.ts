@@ -36,8 +36,10 @@ class App {
     // support application/x-www-form-urlencoded post data
     this.app.use(bodyParser.urlencoded({ extended: false }));
 
-    // view setup
-    this.app.set("views", path.join(__dirname, "../views"));
+    // view engine setup
+    const viewPath = path.join(__dirname, '../views');
+    console.log('viewPath: ', viewPath);
+    this.app.set("views", viewPath);
     this.app.set("view engine", "pug");
   }
 }

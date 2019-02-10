@@ -3,6 +3,9 @@ import express from 'express';
 
 import { getCode, handleAuthCallback } from '../controllers/oauth2Controller';
 import { startSync } from '../controllers/syncerController';
+import { start } from '../controllers/homeController';
+
+
 export class Routes {
   
     public routes(app: express.Application): void {
@@ -27,5 +30,6 @@ export class Routes {
       });
 
       express.Router().get('/syncer', startSync);
+      express.Router().get('/home', start);
     }
 }

@@ -9,6 +9,10 @@ export function startSync(request: Request, response: Response, next?: any): any
 
   // const baseDir: string = process.cwd();
   // const pagePath = path.join(baseDir, '/views/syncer.html');
-  const pagePath = path.join(__dirname, '../../views/syncer.html');
-  response.sendFile(pagePath);
+  
+  // below works but is not using pug
+  // const pagePath = path.join(__dirname, '../../views/syncer.html');
+  // response.sendFile(pagePath);
+
+  response.render('syncer');
 }

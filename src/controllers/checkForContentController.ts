@@ -9,20 +9,27 @@ import WebSocket from 'ws';
 
 export function checkForContent(request: Request, response: Response) {
 
-  const wss = new WebSocket.Server({ port: 8080 })
+  // const wss = new WebSocket.Server({ port: 8080 })
 
-  console.log('setup wss');
-  wss.on('connection', ws => {
-    ws.on('message', message => {
-      console.log(`Received message => ${message}`)
-    })
-    console.log('connection on');
-    const messageData = {
-      type: 'OverallStatus',
-      data: 'Preparing download...'
-    };
-    ws.send(JSON.stringify(messageData));
+  // console.log('setup wss');
+  // wss.on('connection', ws => {
+  //   ws.on('message', message => {
+  //     console.log(`Received message => ${message}`)
+  //   })
+  //   console.log('connection on');
+  //   const messageData = {
+  //     type: 'OverallStatus',
+  //     data: 'Preparing download...'
+  //   };
+  //   ws.send(JSON.stringify(messageData));
+  // });
+	request.socket.setTimeout(Number.MAX_VALUE);
+  response.writeHead(200, {
+    Connection: "keep-alive",
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache"
   });
+  response.write('\n');
 
   response.render('checkForContent', {
     dbMediaItemCount: '',

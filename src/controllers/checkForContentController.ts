@@ -9,39 +9,13 @@ import WebSocket from 'ws';
 
 export function checkForContent(request: Request, response: Response) {
 
-  // const wss = new WebSocket.Server({ port: 8080 })
-
-  // console.log('setup wss');
-  // wss.on('connection', ws => {
-  //   ws.on('message', message => {
-  //     console.log(`Received message => ${message}`)
-  //   })
-  //   console.log('connection on');
-  //   const messageData = {
-  //     type: 'OverallStatus',
-  //     data: 'Preparing download...'
-  //   };
-  //   ws.send(JSON.stringify(messageData));
+  // response.render('checkForContent', {
+  //   downloadedMediaItemCount: '',
+  //   cloudMediaItemsCount: '',
+  //   downloadedAlbumCount: '',
+  //   cloudAlbumsCount: '',
+  //   outOfDateAlbumsCount: '',
   // });
-	request.socket.setTimeout(Number.MAX_VALUE);
-  response.writeHead(200, {
-    Connection: "keep-alive",
-    "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache"
-  });
-  response.write('\n');
-
-  response.render('checkForContent', {
-    dbMediaItemCount: '',
-    cloudMediaItemsCount: '',
-    dbAlbumCount: '',
-    cloudAlbumsCount: '',
-    outOfDateAlbumsCount: '',
-  });
-
-  MediaItem.find({ 'downloaded': true }, 'fileName', (err, downloadedMediaItems) => {
-    if (err) debugger;
-  });
 
   // only looking for items to download; i.e., not currently a sync type function (no deletions)
   //
@@ -50,13 +24,34 @@ export function checkForContent(request: Request, response: Response) {
   //    db
   // determine delta
 
-  // getGooglePhotoMediaItems().then((mediaItems: any[]) => {
-  //   console.log(mediaItems);
-  //   debugger;
-  // });
+  const downloadedMediaItemsPromise = getDownloadedMediaItems();
+  const googleMediaItemsPromise = getGoogleMediaItems();
+  Promise.all([downloadedMediaItemsPromise, googleMediaItemsPromise])
+    .then((values: any) => {
+      console.log(values);
+    }).catch((err) => {
+      console.log(err);
+      debugger;
+    });
 }
 
-function getGooglePhotoMediaItems(): Promise<any> {
+function getDownloadedMediaItems(): Promise<any> {
+  console.log('begin: retrieved downloadedMediaItems from mongoose');
+  return new Promise((resolve, reject) => {
+    const query = MediaItem.find({ 'downloaded': true });
+    let promise = query.exec();
+    promise.then((doc: any[]) => {
+      console.log('mediaItems retrieved from mongo');
+      resolve(doc);
+    }).catch((err) => {
+      reject(err);
+    });
+  });
+}
+
+function getGoogleMediaItems(): Promise<any> {
+  
+  console.log('begin: retrieved cloudMediaItems from google');
 
   let mediaItems: any = [];
   let numMediaItemsRetrieved = 0;
@@ -93,6 +88,5 @@ function getGooglePhotoMediaItems(): Promise<any> {
     };
 
     processGetMediaFiles('');
-
   });
 }

@@ -3,6 +3,7 @@ import express from 'express';
 import { getCode, handleAuthCallback } from '../controllers/oauth2Controller';
 import { start } from '../controllers/homeController';
 import { checkForContent } from '../controllers/checkForContentController';
+import { eventHandler } from '../controllers/events';
 
 export class Routes {
 
@@ -13,7 +14,8 @@ export class Routes {
   createRoutes(app: express.Application) {
     app.get('/', getCode);
     app.get('/authCallback.*', handleAuthCallback);
-    app.get('/home', start);
     app.get('/checkForNewContent', checkForContent);
+    app.get('/events', eventHandler)
+    app.get('/home', start);
   }
 }

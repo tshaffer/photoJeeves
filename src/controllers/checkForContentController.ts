@@ -5,34 +5,51 @@ import MediaItem from '../models/mediaItem';
 
 import * as oauth2Controller from './oauth2Controller';
 
+import { postSseResponse } from './events';
+
 import WebSocket from 'ws';
+
+let checkingForContent = false;
 
 export function checkForContent(request: Request, response: Response) {
 
-  // response.render('checkForContent', {
-  //   downloadedMediaItemCount: '',
-  //   cloudMediaItemsCount: '',
-  //   downloadedAlbumCount: '',
-  //   cloudAlbumsCount: '',
-  //   outOfDateAlbumsCount: '',
-  // });
+  if (!checkingForContent) {
 
-  // only looking for items to download; i.e., not currently a sync type function (no deletions)
-  //
-  // retrieve all photoIds from
-  //    cloud
-  //    db
-  // determine delta
+    checkingForContent = true;
 
-  const downloadedMediaItemsPromise = getDownloadedMediaItems();
-  const googleMediaItemsPromise = getGoogleMediaItems();
-  Promise.all([downloadedMediaItemsPromise, googleMediaItemsPromise])
-    .then((values: any) => {
-      console.log(values);
-    }).catch((err) => {
-      console.log(err);
-      debugger;
+    console.log('post response.render');
+
+    response.render('checkForContent', {
+      downloadedMediaItemCount: '',
+      cloudMediaItemsCount: '',
+      downloadedAlbumCount: '',
+      cloudAlbumsCount: '',
+      outOfDateAlbumsCount: '',
     });
+
+    const downloadedMediaItemsPromise = getDownloadedMediaItems();
+    downloadedMediaItemsPromise.then((downloadedMediaItems: any) => {
+      postSseResponse({
+        downloadedMediaItemCount: downloadedMediaItems.length,
+        cloudMediaItemsCount: '',
+        downloadedAlbumCount: '',
+        cloudAlbumsCount: '',
+        outOfDateAlbumsCount: '',
+      });
+    })
+
+  }
+
+
+
+  // const googleMediaItemsPromise = getGoogleMediaItems();
+  // Promise.all([downloadedMediaItemsPromise, googleMediaItemsPromise])
+  //   .then((values: any) => {
+  //     console.log(values);
+  //   }).catch((err) => {
+  //     console.log(err);
+  //     debugger;
+  //   });
 }
 
 function getDownloadedMediaItems(): Promise<any> {
@@ -50,7 +67,7 @@ function getDownloadedMediaItems(): Promise<any> {
 }
 
 function getGoogleMediaItems(): Promise<any> {
-  
+
   console.log('begin: retrieved cloudMediaItems from google');
 
   let mediaItems: any = [];

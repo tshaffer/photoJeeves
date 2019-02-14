@@ -10,6 +10,7 @@ import { postSseResponse } from './events';
 
 import WebSocket from 'ws';
 import { exec } from "child_process";
+import { google } from "googleapis";
 
 let checkingForContent = false;
 
@@ -31,41 +32,28 @@ export function checkForContent(request: Request, response: Response) {
 
     const downloadedMediaItemsPromise = getDownloadedMediaItems();
     const downloadedAlbumsPromise = getDownloadedAlbums();
-    Promise.all([downloadedMediaItemsPromise, downloadedAlbumsPromise])
+    const googleAlbumsPromise = getGoogleAlbums();
+    // const googleMediaItemsPromise = getGoogleMediaItems();
+    Promise.all([downloadedMediaItemsPromise, downloadedAlbumsPromise, googleAlbumsPromise])
       .then((results) => {
         console.log(results);
 
         const downloadedMediaItems = results[0];
         const downloadedAlbums = results[1];
+        const googleAlbums = results[2];
+
+        // compare googleAlbums to downloadedAlbums
+        compareAlbums(googleAlbums, downloadedAlbums);
+        
         postSseResponse({
           downloadedMediaItemCount: downloadedMediaItems.length,
           cloudMediaItemsCount: '',
           downloadedAlbumCount: downloadedAlbums.length,
-          cloudAlbumsCount: '',
+          googleAlbumCount: googleAlbums.length,
           outOfDateAlbumsCount: '',
         });
       })
-    // downloadedMediaItemsPromise.then((downloadedMediaItems: any) => {
-    //   postSseResponse({
-    //     downloadedMediaItemCount: downloadedMediaItems.length,
-    //     cloudMediaItemsCount: '',
-    //     downloadedAlbumCount: '',
-    //     cloudAlbumsCount: '',
-    //     outOfDateAlbumsCount: '',
-    //   });
-    // })
   }
-
-
-
-  // const googleMediaItemsPromise = getGoogleMediaItems();
-  // Promise.all([downloadedMediaItemsPromise, googleMediaItemsPromise])
-  //   .then((values: any) => {
-  //     console.log(values);
-  //   }).catch((err) => {
-  //     console.log(err);
-  //     debugger;
-  //   });
 }
 
 function getDownloadedMediaItems(): Promise<any> {
@@ -76,13 +64,13 @@ function getDownloadedMediaItems(): Promise<any> {
 
 function getDownloadedAlbums(): Promise<any> {
   console.log('begin: retrieve downloadedAlbums from mongoose');
-  const query = Album.find( {} );
+  const query = Album.find({});
   return query.exec();
 }
 
 function getGoogleMediaItems(): Promise<any> {
 
-  console.log('begin: retrieved cloudMediaItems from google');
+  console.log('begin: retrieve cloudMediaItems from google');
 
   let mediaItems: any = [];
   let numMediaItemsRetrieved = 0;
@@ -120,4 +108,85 @@ function getGoogleMediaItems(): Promise<any> {
 
     processGetMediaFiles('');
   });
+}
+
+function getGoogleAlbums(): Promise<any> {
+
+  console.log('begin: retrieve cloudAlbums from google');
+
+  let albums: any = [];
+  let numAlbumsRetrieved = 0;
+
+  var access_token = oauth2Controller.getAccessToken();
+  const apiEndpoint = 'https://photoslibrary.googleapis.com';
+
+  return new Promise((resolve, reject) => {
+
+    var processGetAlbums = (pageToken: string) => {
+
+      var url = apiEndpoint + '/v1/albums?pageSize=50'
+      if (pageToken !== '') {
+        url = url + '&pageToken=' + pageToken;
+      }
+      requestPromise.get(url, {
+        headers: { 'Content-Type': 'application/json' },
+        json: true,
+        auth: { 'bearer': access_token },
+      }).then((result) => {
+
+        albums = albums.concat(result.albums);
+
+        if (result.albums.length === 0 || result.nextPageToken === undefined) {
+          console.log('retrieved all albums');
+          resolve(albums);
+        }
+        else {
+          numAlbumsRetrieved += result.albums.length;
+          console.log('numAlbumsRetrieved: ', numAlbumsRetrieved);
+          processGetAlbums(result.nextPageToken);
+        }
+      });
+    };
+
+    processGetAlbums('');
+  });
+}
+
+function compareAlbums(googleAlbums: any[], downloadedAlbums: any[]) {
+
+  const googleAlbumsById: any = {};
+  googleAlbums.forEach((googleAlbum: any) => {
+    googleAlbumsById[googleAlbum.id] = googleAlbum;
+  });
+
+  const downloadedAlbumsById: any = {};
+  downloadedAlbums.forEach((downloadedAlbum: any) => {
+    downloadedAlbumsById[downloadedAlbum.id] = downloadedAlbum;
+  });
+
+  const googleAlbumsNotDownloaded: any[] = [];
+  for (const albumId in googleAlbumsById) {
+    if (googleAlbumsById.hasOwnProperty(albumId)) {
+      const googleAlbum = googleAlbumsById[albumId];
+      if (!downloadedAlbumsById.hasOwnProperty(albumId)) {
+        googleAlbumsNotDownloaded.push(googleAlbum);
+      }
+    }
+  }
+
+  const downloadedAlbumsNotInCloud: any[] = [];
+  for (const albumId in downloadedAlbumsById) {
+    if (downloadedAlbumsById.hasOwnProperty(albumId)) {
+      const downloadedAlbum = downloadedAlbumsById[albumId];
+      if (!downloadedAlbumsById.hasOwnProperty(albumId)) {
+        downloadedAlbumsNotInCloud.push(downloadedAlbum);
+      }
+    }
+  }
+
+  console.log('googleAlbumsNotDownloaded');
+  console.log(googleAlbumsNotDownloaded);
+
+  console.log('downloadedAlbumsNotInCloud');
+  console.log(downloadedAlbumsNotInCloud);
 }

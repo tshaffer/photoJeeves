@@ -2,12 +2,14 @@ import { Request, Response } from "express";
 import requestPromise from 'request-promise';
 
 import MediaItem from '../models/mediaItem';
+import Album from '../models/album';
 
 import * as oauth2Controller from './oauth2Controller';
 
 import { postSseResponse } from './events';
 
 import WebSocket from 'ws';
+import { exec } from "child_process";
 
 let checkingForContent = false;
 
@@ -28,16 +30,30 @@ export function checkForContent(request: Request, response: Response) {
     });
 
     const downloadedMediaItemsPromise = getDownloadedMediaItems();
-    downloadedMediaItemsPromise.then((downloadedMediaItems: any) => {
-      postSseResponse({
-        downloadedMediaItemCount: downloadedMediaItems.length,
-        cloudMediaItemsCount: '',
-        downloadedAlbumCount: '',
-        cloudAlbumsCount: '',
-        outOfDateAlbumsCount: '',
-      });
-    })
+    const downloadedAlbumsPromise = getDownloadedAlbums();
+    Promise.all([downloadedMediaItemsPromise, downloadedAlbumsPromise])
+      .then((results) => {
+        console.log(results);
 
+        const downloadedMediaItems = results[0];
+        const downloadedAlbums = results[1];
+        postSseResponse({
+          downloadedMediaItemCount: downloadedMediaItems.length,
+          cloudMediaItemsCount: '',
+          downloadedAlbumCount: downloadedAlbums.length,
+          cloudAlbumsCount: '',
+          outOfDateAlbumsCount: '',
+        });
+      })
+    // downloadedMediaItemsPromise.then((downloadedMediaItems: any) => {
+    //   postSseResponse({
+    //     downloadedMediaItemCount: downloadedMediaItems.length,
+    //     cloudMediaItemsCount: '',
+    //     downloadedAlbumCount: '',
+    //     cloudAlbumsCount: '',
+    //     outOfDateAlbumsCount: '',
+    //   });
+    // })
   }
 
 
@@ -53,17 +69,15 @@ export function checkForContent(request: Request, response: Response) {
 }
 
 function getDownloadedMediaItems(): Promise<any> {
-  console.log('begin: retrieved downloadedMediaItems from mongoose');
-  return new Promise((resolve, reject) => {
-    const query = MediaItem.find({ 'downloaded': true });
-    let promise = query.exec();
-    promise.then((doc: any[]) => {
-      console.log('mediaItems retrieved from mongo');
-      resolve(doc);
-    }).catch((err) => {
-      reject(err);
-    });
-  });
+  console.log('begin: retrieve downloadedMediaItems from mongoose');
+  const query = MediaItem.find({ 'downloaded': true });
+  return query.exec();
+}
+
+function getDownloadedAlbums(): Promise<any> {
+  console.log('begin: retrieve downloadedAlbums from mongoose');
+  const query = Album.find( {} );
+  return query.exec();
 }
 
 function getGoogleMediaItems(): Promise<any> {

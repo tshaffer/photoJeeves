@@ -8,7 +8,7 @@ html
     p= 'Checking for new content...'
     p(id='localMediaContent')= 'Number of local media items: ' + downloadedMediaItemCount
     p= 'Number of media items in the cloud: ' + cloudMediaItemsCount
-    p= 'Number of local albums: ' + downloadedAlbumCount
+    p(id='localAlbumContent')= 'Number of local albums: ' + downloadedAlbumCount
     p= 'Number of albums in the cloud: ' + cloudAlbumsCount
     p= 'Number of existing albums that need updates: ' + outOfDateAlbumsCount
     script

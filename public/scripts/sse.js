@@ -16,4 +16,9 @@ evtSource.onmessage = function(e) {
   var pLocalMediaContent  = document.getElementById('localMediaContent');
   console.log(pLocalMediaContent)
   pLocalMediaContent.innerHTML = 'Number of local media items: ' + messageData.downloadedMediaItemCount.toString();
+
+  var pLocalAlbumContent  = document.getElementById('localAlbumContent');
+  console.log(pLocalAlbumContent)
+  pLocalAlbumContent.innerHTML = 'Number of local Album items: ' + messageData.downloadedAlbumCount.toString();
+
 }

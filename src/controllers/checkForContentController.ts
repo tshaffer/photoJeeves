@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import requestPromise from 'request-promise';
 
+import {
+  isNil,
+} from 'lodash';
+
 import MediaItem from '../models/mediaItem';
 import Album from '../models/album';
 
@@ -9,10 +13,14 @@ import * as oauth2Controller from './oauth2Controller';
 import { postSseResponse } from './events';
 
 import {
-  AlbumData,
+  GoogleAlbumsContentsByAlbumIdMap,
+  GoogleAlbumData,
   DbAlbum,
+  PhotoMetadata,
   PhotoStatus,
   DbMediaItem,
+  GoogleAlbum,
+  GoogleMediaItem,
 } from '../types';
 
 let checkingForContent = false;
@@ -33,30 +41,30 @@ export function checkForContent(request: Request, response: Response) {
       outOfDateAlbumsCount: '',
     });
 
-    const downloadedMediaItemsPromise = getDownloadedMediaItems();
-    const downloadedAlbumsPromise = getDownloadedAlbums();
-    const googleAlbumsPromise = getGoogleAlbums();
-    const googleMediaItemsPromise = getGoogleMediaItems();
+    const downloadedMediaItemsPromise: Promise<DbMediaItem[]> = getDownloadedMediaItems();
+    const downloadedAlbumsPromise: Promise<DbAlbum[]> = getDownloadedAlbums();
+    const googleAlbumsPromise: Promise<GoogleAlbumData> = getGoogleAlbums();
+    const googleMediaItemsPromise: Promise<GoogleMediaItem[]> = getGoogleMediaItems();
     
-    // Promise.all([downloadedMediaItemsPromise, downloadedAlbumsPromise, googleAlbumsPromise, googleMediaItemsPromise])
-    //   .then((results) => {
-    //     console.log(results);
+    Promise.all([downloadedMediaItemsPromise, downloadedAlbumsPromise, googleAlbumsPromise, googleMediaItemsPromise])
+      .then((results) => {
+        console.log(results);
 
-    //     const downloadedMediaItems = results[0];
-    //     const downloadedAlbums = results[1];
-    //     const googleAlbumData = results[2];
-    //     const googleMediaItems = results[3];
+        const downloadedMediaItems: DbMediaItem[] = results[0];
+        const downloadedAlbums: DbAlbum[] = results[1];
+        const googleAlbumData: GoogleAlbumData = results[2];
+        const googleMediaItems: GoogleMediaItem[] = results[3];
 
-    //     analyseResults(downloadedMediaItems, downloadedAlbums, googleAlbumData, googleMediaItems);
+        analyseResults(downloadedMediaItems, downloadedAlbums, googleAlbumData, googleMediaItems);
 
-    //     postSseResponse({
-    //       downloadedMediaItemCount: downloadedMediaItems.length,
-    //       cloudMediaItemsCount: '',
-    //       downloadedAlbumCount: downloadedAlbums.length,
-    //       googleAlbumCount: googleAlbumData.albums.length,
-    //       outOfDateAlbumsCount: '',
-    //     });
-    //   })
+        postSseResponse({
+          downloadedMediaItemCount: downloadedMediaItems.length,
+          cloudMediaItemsCount: '',
+          downloadedAlbumCount: downloadedAlbums.length,
+          googleAlbumCount: googleAlbumData.googleAlbums.length,
+          outOfDateAlbumsCount: '',
+        });
+      })
   }
 }
 
@@ -103,11 +111,11 @@ function getDownloadedAlbums(): Promise<DbAlbum[]> {
   });
 }
 
-function getGoogleMediaItems(): Promise<any> {
+function getGoogleMediaItems(): Promise<GoogleMediaItem[]> {
 
   console.log('begin: retrieve cloudMediaItems from google');
 
-  let mediaItems: any = [];
+  let allGoogleMediaItems: GoogleMediaItem[] = [];
   let numMediaItemsRetrieved = 0;
 
   const access_token = oauth2Controller.getAccessToken();
@@ -127,11 +135,44 @@ function getGoogleMediaItems(): Promise<any> {
         auth: { 'bearer': access_token },
       }).then((result) => {
 
-        mediaItems = mediaItems.concat(result.mediaItems);
+        let googleMediaItems: GoogleMediaItem[] = [];
+        try {
+          googleMediaItems = result.mediaItems.map( (downloadedMediaItem: any) => {
+
+            const photo: PhotoMetadata | null = isNil(downloadedMediaItem.mediaMetadata.photo) ?
+              null : 
+              {
+                apertureFNumber: downloadedMediaItem.mediaMetadata.photo.apertureFNumber,
+                cameraMake: downloadedMediaItem.mediaMetadata.photo.cameraMake,
+                cameraModel: downloadedMediaItem.mediaMetadata.photo.cameraModel,
+                focalLength: downloadedMediaItem.mediaMetadata.photo.focalLength,
+                isoEquivalent: downloadedMediaItem.mediaMetadata.photo.isoEquivalent,
+              };
+
+            return {
+              baseUrl: downloadedMediaItem.baseUrl,
+              fileName: downloadedMediaItem.filename,
+              googleMediaItemId: downloadedMediaItem.id,
+              mediaMetadata: {
+                creationTime: downloadedMediaItem.mediaMetadata.creationTime,
+                height: downloadedMediaItem.mediaMetadata.height,
+                width: downloadedMediaItem.mediaMetadata.width,
+                photo,
+              },
+              mimeType: downloadedMediaItem.mimeType,
+              productUrl: downloadedMediaItem.productUrl,
+            } as GoogleMediaItem;
+          });
+        }
+        catch (err) {
+          console.log(googleMediaItems.length);
+          debugger;
+        }
+        allGoogleMediaItems = allGoogleMediaItems.concat(googleMediaItems);
 
         if (result.mediaItems.length === 0 || result.nextPageToken === undefined) {
           console.log('retrieved all mediaItems');
-          resolve(mediaItems);
+          resolve(allGoogleMediaItems);
         }
         else {
           numMediaItemsRetrieved += result.mediaItems.length;
@@ -145,11 +186,11 @@ function getGoogleMediaItems(): Promise<any> {
   });
 }
 
-function getGoogleAlbums(): Promise<AlbumData> {
+function getGoogleAlbums(): Promise<GoogleAlbumData> {
 
   console.log('begin: retrieve cloudAlbums from google');
 
-  let albums: any = [];
+  let allGoogleAlbums: GoogleAlbum[] = [];
   let numAlbumsRetrieved = 0;
 
   const access_token = oauth2Controller.getAccessToken();
@@ -159,7 +200,7 @@ function getGoogleAlbums(): Promise<AlbumData> {
 
     var processGetAlbums = (pageToken: string) => {
 
-      let url = apiEndpoint + '/v1/albums?pageSize=50'
+      let url = apiEndpoint + '/v1/albums?pageSize=50';
       if (pageToken !== '') {
         url = url + '&pageToken=' + pageToken;
       }
@@ -169,20 +210,29 @@ function getGoogleAlbums(): Promise<AlbumData> {
         auth: { 'bearer': access_token },
       }).then((result) => {
 
-        albums = albums.concat(result.albums);
+        const googleAlbums: GoogleAlbum[] = result.albums.map( (downloadedGoogleAlbum: any) => {
+          return {
+            googleAlbumId: downloadedGoogleAlbum.id,
+            title: downloadedGoogleAlbum.title,
+            productUrl: downloadedGoogleAlbum.productUrl,
+            mediaItemsCount: downloadedGoogleAlbum.mediaItemsCount,
+            mediaItems: [],
+          } as GoogleAlbum;
+        });
+        allGoogleAlbums = allGoogleAlbums.concat(googleAlbums);
 
         if (result.albums.length === 0 || result.nextPageToken === undefined) {
           console.log('retrieved all albums');
           console.log('Albums:');
-          console.log(albums);
+          console.log(allGoogleAlbums);
 
-          fetchAlbumContents(access_token, albums).then((albumContentsByAlbumId) => {
+          fetchContentsForAlbums(access_token, allGoogleAlbums).then((albumContentsByAlbumId: GoogleAlbumsContentsByAlbumIdMap) => {
             console.log('All album related information retrieved');
             console.log('Album contents by albumId');
             console.log(albumContentsByAlbumId);
 
-            const albumData: AlbumData = {
-              albums, 
+            const albumData: GoogleAlbumData = {
+              googleAlbums: allGoogleAlbums, 
               albumContentsByAlbumId,
             };
             resolve(albumData);
@@ -200,20 +250,21 @@ function getGoogleAlbums(): Promise<AlbumData> {
   });
 }
 
-function fetchAlbumContents(access_token: string, albums: any[]) {
+// albums is an array of the album structures retrieved directly from google api 
+function fetchContentsForAlbums(access_token: string, albums: GoogleAlbum[]): Promise<GoogleAlbumsContentsByAlbumIdMap> {
 
   console.log('number of albums');
   console.log(albums.length);
 
   return new Promise((resolve, reject) => {
 
-    const albumsById: any = {};
+    const albumsById: GoogleAlbumsContentsByAlbumIdMap = {};
 
     var processFetchAlbumContents = (albumIdIndex: number, pageToken: string) => {
 
       console.log('processFetchAlbumContent for albumIdIndex: ', albumIdIndex);
 
-      const albumId: string = albums[albumIdIndex].id;
+      const albumId: string = albums[albumIdIndex].googleAlbumId;
 
       let apiEndpoint = 'https://photoslibrary.googleapis.com/v1/mediaItems:search?pageSize=100';
       if (pageToken !== '' && (typeof pageToken !== 'undefined')) {
@@ -229,15 +280,14 @@ function fetchAlbumContents(access_token: string, albums: any[]) {
 
         if (result.mediaItems && result.mediaItems.length > 0) {
 
-          let mediaItemIdsInAlbum = result.mediaItems.map((mediaItem: any) => {
+          let mediaItemIdsInAlbum: string[] = result.mediaItems.map((mediaItem: any) => {
             return mediaItem.id;
           });
           // concat data from prior call on same album
-          if (albumsById[albumId]) {
-            mediaItemIdsInAlbum = albumsById[albumId].concat(mediaItemIdsInAlbum);
+          if ((albumsById as any)[albumId]) {
+            mediaItemIdsInAlbum = (albumsById as any)[albumId].concat(mediaItemIdsInAlbum);
           }
-          albumsById[albumId] = mediaItemIdsInAlbum;
-
+          (albumsById as any)[albumId] = mediaItemIdsInAlbum;
         }
 
         if (result.nextPageToken === undefined) {
@@ -257,11 +307,11 @@ function fetchAlbumContents(access_token: string, albums: any[]) {
   });
 }
 
-function getAlbumStatus(googleAlbumData: AlbumData, downloadedAlbums: any[]): PhotoStatus {
+function getAlbumStatus(googleAlbumData: GoogleAlbumData, downloadedAlbums: any[]): PhotoStatus {
 
   const googleAlbumsById: any = {};
 
-  const googleAlbums = googleAlbumData.albums;
+  const googleAlbums = googleAlbumData.googleAlbums;
   googleAlbums.forEach((googleAlbum: any) => {
     googleAlbumsById[googleAlbum.id] = googleAlbum;
   });

@@ -72,24 +72,14 @@ Sub RunTpp()
   tpp.localServer.AddGetFromEvent({ url_path: "/GetID", user_data: tpp.GetIDAA })
   tpp.localServer.AddGetFromEvent({ url_path: "/GetCurrentStatus", user_data: tpp.GetCurrentStatusAA, passwords: invalid })        
   tpp.localServer.AddGetFromEvent({ url_path: "/GetSnapshotConfiguration", user_data: tpp.GetSnapshotConfigurationAA})
-	' tpp.localServer.AddGetFromFile({ url_path: "/", content_type: "text/plain; charset=utf-8", filename: "autorun.brs" })
 
   tpp.localServer8008.AddGetFromEvent({ url_path: "/GetRemoteData", user_data: tpp.GetRemoteDataAA })
   tpp.localServer8008.AddGetFromEvent({ url_path: "/GetID", user_data: tpp.GetIDAA })
   tpp.localServer8008.AddGetFromEvent({ url_path: "/GetCurrentStatus", user_data: tpp.GetCurrentStatusAA, passwords: invalid })        
   tpp.localServer8008.AddGetFromEvent({ url_path: "/GetSnapshotConfiguration", user_data: tpp.GetSnapshotConfigurationAA})
 
-  tpp.GetUserVarsAA = { HandleEvent: GetUserVars, mVar: tpp }
   tpp.GetConfigurationPageAA = { HandleEvent: GetConfigurationPage, mVar: tpp }
-  tpp.GetUDPEventsAA = { HandleEvent: GetUDPEvents, mVar: tpp }
-  tpp.GetUserVariableCategoriesAA = { HandleEvent: GetUserVariableCategories, mVar: tpp }
-  tpp.GetUserVariablesByCategoryAA = { HandleEvent: GetUserVariablesByCategory, mVar: tpp }
-
-  tpp.localServer8008.AddGetFromEvent({ url_path: "/GetUserVars", user_data: tpp.GetUserVarsAA})
   tpp.localServer8008.AddGetFromEvent({ url_path: "/", user_data: tpp.GetConfigurationPageAA, passwords: invalid})
-  tpp.localServer8008.AddGetFromEvent({ url_path: "/GetUDPEvents", user_data: tpp.GetUDPEventsAA })
-  tpp.localServer8008.AddGetFromEvent({ url_path: "/GetUserVariableCategories", user_data: tpp.GetUserVariableCategoriesAA})
-  tpp.localServer8008.AddGetFromEvent({ url_path: "/GetUserVariablesByCategory", user_data: tpp.GetUserVariablesByCategoryAA})
 
   unitName$ = "photoPlayer"
   unitNamingMethod$ = "appendUnitIDToUnitName"
@@ -575,11 +565,6 @@ Function GetSnapshotConfiguration(userData as Object, e as Object) As Object
 End Function
 
 
-Function GetUserVars(userData as Object, e as Object) As Object
-  stop
-End Function
-
-
 Function GetConfigurationPage(userData as Object, e as Object) As Object
 
   e.AddResponseHeader("Content-type", "text/html; charset=utf-8")
@@ -590,19 +575,9 @@ Function GetConfigurationPage(userData as Object, e as Object) As Object
 End Function
 
 
-Function GetUDPEvents(userData as Object, e as Object) As Object
-  stop
-End Function
 
 
-Function GetUserVariableCategories(userData as Object, e as Object) As Object
-  stop
-End Function
 
-
-Function GetUserVariablesByCategory(userData as Object, e as Object) As Object
-  stop
-End Function
 
 
 Function StripLeadingSpaces(inputString$ As String) As String

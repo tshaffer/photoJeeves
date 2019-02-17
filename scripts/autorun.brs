@@ -218,6 +218,10 @@ Sub processUdpEvent(event As Object)
       else
         print "Syntax error: album name missing for album command"
       endif
+    else if command$ = "startPlayback" then
+      m.startPlayback()
+    else if command$ = "pausePlayback" then
+      m.pausePlayback()
     endif
   endif
 
@@ -370,7 +374,7 @@ Sub GetRemoteData(userData as Object, e as Object)
 '  if mVar.activePresentation$ <> invalid then
 '  elem.SetBody(mVar.activePresentation$)
 '  endif
-  elem.SetBody("udpTester-2")
+  elem.SetBody("photoJeeves")
 
   xml = root.GenXML({ indent: " ", newline: chr(10), header: true })
 print xml
@@ -421,15 +425,6 @@ End Sub
 
 ' requires the following
 ' label & action for each udp item that appears in app.
-' examples include
-'action$: home
-'label$: home WRR
-'action$: gt2
-'label$: grand teton 2
-' action$: p6
-' label$: ppt6
-' action$: product1
-' label$: Product1
 
 Sub PopulateUDPData(mVar As Object, root As Object)
 
@@ -452,15 +447,32 @@ Sub PopulateUDPData(mVar As Object, root As Object)
 
   udpEventElem = udpEventsElem.AddElement("udpEvent")
   udpEventLabel = udpEventElem.AddElement("label")
-  udpEventLabel.SetBody("label1")
+  udpEventLabel.SetBody("Start")
   udpEventAction = udpEventElem.AddElement("action")
-  udpEventAction.SetBody("action1")
+  udpEventAction.SetBody("startPlayback")
 
   udpEventElem = udpEventsElem.AddElement("udpEvent")
   udpEventLabel = udpEventElem.AddElement("label")
-  udpEventLabel.SetBody("label2")
+  udpEventLabel.SetBody("Pause")
   udpEventAction = udpEventElem.AddElement("action")
-  udpEventAction.SetBody("action2")
+  udpEventAction.SetBody("pausePlayback")
+
+  ' album!!<album name>
+
+  albums = tpp.photoManifest.albums
+  albumNames = []
+  for each albumName in albums
+    albumNames.push(albumName)
+  next
+
+  for i = 0 to 9
+    albumName$ = albumNames[i]
+    udpEventElem = udpEventsElem.AddElement("udpEvent")
+    udpEventLabel = udpEventElem.AddElement("label")
+    udpEventLabel.SetBody(albumName$)
+    udpEventAction = udpEventElem.AddElement("action")
+    udpEventAction.SetBody("album!!" + albumName$)
+  next
 
 End Sub
 
@@ -567,17 +579,14 @@ End Function
 
 Function GetConfigurationPage(userData as Object, e as Object) As Object
 
+' TODO - return some real html here
+
   e.AddResponseHeader("Content-type", "text/html; charset=utf-8")
   e.SetResponseBodyString("")
 '   if not e.SendResponse(403) then stop
   e.SendResponse(200)
 
 End Function
-
-
-
-
-
 
 
 Function StripLeadingSpaces(inputString$ As String) As String

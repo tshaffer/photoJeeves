@@ -465,7 +465,7 @@ Sub PopulateUDPData(mVar As Object, root As Object)
     albumNames.push(albumName)
   next
 
-  for i = 0 to 9
+  for i = 0 to albumNames.count() - 1
     albumName$ = albumNames[i]
     udpEventElem = udpEventsElem.AddElement("udpEvent")
     udpEventLabel = udpEventElem.AddElement("label")

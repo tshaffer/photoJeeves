@@ -5,16 +5,24 @@ export interface Dict<T> {
 // investigate map as alternative to Dict
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
 
-export type GoogleAlbumsContentsByAlbumIdMap = Dict<GoogleAlbum> | {};
+// export type GoogleAlbumsContentsByAlbumIdMap = Dict<GoogleAlbum> | {};
 
-export interface GoogleAlbumData {
-  googleAlbums: GoogleAlbum[];
-  albumContentsByAlbumId: GoogleAlbumsContentsByAlbumIdMap;
-}
+// export interface GoogleAlbumData {
+//   googleAlbums: GoogleAlbum[];
+//   albumContentsByAlbumId: GoogleAlbumsContentsByAlbumIdMap;
+// }
 
 export interface PhotoStatus {
-  googleAlbumsNotDownloaded: any[];
-  downloadedAlbumsNotInCloud: any[];
+  googleAlbumsNotDownloaded: GoogleAlbum[];
+  albumDifferencesByAlbumId: Map<string, AlbumWithDifferences>;
+  downloadedAlbumsNotInCloud: DbAlbum[];
+}
+
+export interface AlbumWithDifferences {
+  googleId: string;
+  title: string;
+  addedMediaItemIds: string[];
+  deletedMediaItemIds: string[];
 }
 
 export interface DbAlbum {
@@ -41,7 +49,7 @@ export interface GoogleAlbum {
   title: string;
   productUrl: string;
   mediaItemsCount: number;
-  mediaItems: GoogleMediaItem[];  // this is currently not filled in.
+  mediaItemIds: string[];
 }
 
 export interface PhotoMetadata {

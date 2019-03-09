@@ -70,6 +70,10 @@ const sendRewindPlayback = () => {
   sendCommandToBrightSign('rewind');
 }
 
+const sendExit = () => {
+  sendCommandToBrightSign('exit');
+}
+
 const sendCommandToBrightSign = (cmd) => {
 
   if (noBsMode) {
@@ -113,3 +117,4 @@ module.exports.sendPlayAlbum = sendPlayAlbum;
 module.exports.sendPausePlayback = sendPausePlayback;
 module.exports.sendResumePlayback = sendResumePlayback;
 module.exports.sendRewindPlayback = sendRewindPlayback;
+module.exports.sendExit = sendExit;

@@ -12,6 +12,8 @@ const bsnConnectorConfig = bsnConnector.bsnConnectorConfig;
 const dwsManager = require('@brightsign/bs-dws-manager');
 const getDwsConnector = dwsManager.getDwsConnector;
 
+const albumNames = require('./albums');
+
 console.log('getBrightSignInterface');
 const brightSignInterface = require('./brightSignInterface');
 console.log('brightSignInterface');
@@ -44,8 +46,13 @@ const LaunchRequestHandler = {
 
     handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
 
+    const cardTitle = 'PhotoJeeves - list of albums';
+    const cardContents = albumNames.ALBUM_NAMES.join('\n');
+    console.log(cardContents);
+
     return handlerInput.responseBuilder
       .speak(speakOutput)
+      .withSimpleCard(cardTitle, cardContents)
       .reprompt(repromptOutput)
       .getResponse();
   },
@@ -61,6 +68,14 @@ const AlbumHandler = {
     const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
 
     const itemName = getSlotItemName(handlerInput.requestEnvelope.request.intent.slots.Item);
+
+    console.log('AlbumHandler');
+    console.log(handlerInput);
+    console.log(handlerInput.requestEnvelope);
+    console.log(handlerInput.requestEnvelope.request);
+    console.log(handlerInput.requestEnvelope.request.intent);
+    console.log(handlerInput.requestEnvelope.request.intent.slots);
+    console.log(handlerInput.requestEnvelope.request.intent.slots.Item);
 
     const cardTitle = requestAttributes.t('DISPLAY_CARD_TITLE', requestAttributes.t('SKILL_NAME'), itemName);
     let speakOutput = "";
@@ -224,6 +239,34 @@ const RewindHandler = {
   },
 };
 
+const ListAlbumsHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === 'ListAlbumsIntent';
+  },
+  handle(handlerInput) {
+    const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
+    const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+
+    console.log('ListAlbumsIntent received');
+
+    const speakOutput = 'list all albums';
+
+    sessionAttributes.speakOutput = speakOutput;
+    sessionAttributes.repromptSpeech = speakOutput;
+
+    const cardTitle = 'PhotoJeeves - list of albums';
+
+    const cardContents = albumNames.ALBUM_NAMES.join(', ');
+    console.log(cardContents);
+    
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .withSimpleCard(cardTitle, cardContents)
+      .withShouldEndSession(false)
+      .getResponse();
+  },
+}
 const HelpHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest'
@@ -268,6 +311,11 @@ const ExitHandler = {
     const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
     const speakOutput = requestAttributes.t('STOP_MESSAGE', requestAttributes.t('SKILL_NAME'));
 
+    console.log('ExitHandler, invoke sendExit()');
+    if (!brightSignInterface.noBsMode) {
+      brightSignInterface.sendExit();
+    }
+
     return handlerInput.responseBuilder
       .speak(speakOutput)
       .getResponse();
@@ -296,6 +344,10 @@ const SessionEndedRequestHandler = {
     return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
   },
   handle(handlerInput) {
+    console.log('SessionEndedRequestHandler, invoke sendExit()');
+    if (!brightSignInterface.noBsMode) {
+      brightSignInterface.sendExit();
+    }
     console.log(`Session ended with reason: ${JSON.stringify(handlerInput.requestEnvelope)}`);
     return handlerInput.responseBuilder.getResponse();
   },
@@ -368,6 +420,7 @@ exports.handler = skillBuilder
     StopHandler,
     ResumeHandler,
     RewindHandler,
+    ListAlbumsHandler,
     HelpHandler,
     RepeatHandler,
     ExitHandler,

@@ -214,37 +214,6 @@ Function newEar(msgPort As Object) As Object
 End Function
 
 
-Sub processUdpEvent(event As Object)
-
-  udpEvent$ = event.GetString()
-  print "udpEvent: ";udpEvent$
-
-  ' format
-  '   <command>!!<parameters>
-  regex = CreateObject("roRegEx", "!!", "i")
-  commandComponents = regex.Split(udpEvent$)
-  if commandComponents.Count() > 0 then
-    command$ = commandComponents[0]
-    if command$ = "album" then
-      if commandComponents.Count() > 1 then
-        albumName$ = commandComponents[1]
-        print "Switch to album: ";albumName$
-        m.switchAlbum(albumName$)
-      else
-        print "Syntax error: album name missing for album command"
-      endif
-    else if command$ = "startPlayback" then
-      m.startPlayback()
-    else if command$ = "pausePlayback" then
-      m.pausePlayback()
-    else if command$ = "rewind" then
-      m.rewind()
-    endif
-  endif
-
-End Sub
-
-
 Sub processHtmlEvent(event As Object)
 
   eventData = event.GetData()
@@ -671,3 +640,38 @@ Sub EventLoop(msgPort As Object)
   end while
 
 End Sub
+
+
+Sub processUdpEvent(event As Object)
+
+  udpEvent$ = event.GetString()
+  print "udpEvent: ";udpEvent$
+
+  ' format
+  '   <command>!!<parameters>
+  regex = CreateObject("roRegEx", "!!", "i")
+  commandComponents = regex.Split(udpEvent$)
+  if commandComponents.Count() > 0 then
+    command$ = commandComponents[0]
+    if command$ = "album" then
+      if commandComponents.Count() > 1 then
+        albumName$ = commandComponents[1]
+        print "Switch to album: ";albumName$
+        m.switchAlbum(albumName$)
+      else
+        print "Syntax error: album name missing for album command"
+      endif
+    else if command$ = "startPlayback" then
+      m.startPlayback()
+    else if command$ = "pausePlayback" then
+      m.pausePlayback()
+    else if command$ = "rewind" then
+      m.rewind()
+    else if command$ = "exit" then
+      print "received exit command from the cloud"
+      m.pausePlayback()
+    endif
+  endif
+
+End Sub
+

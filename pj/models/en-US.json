@@ -1,25 +1,285 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "hello world",
+      "invocationName": "photo jeeves",
       "intents": [
         {
-          "name": "AMAZON.CancelIntent",
+          "name": "AlbumIntent",
+          "slots": [
+            {
+              "name": "Item",
+              "type": "LIST_OF_ITEMS"
+            }
+          ],
+          "samples": [
+            "show album {Item}",
+            "play album {Item}",
+            "show album named {Item}",
+            "play album named {Item}",
+            "show an album named {Item}",
+            "play an album named {Item}",
+            "show the album named {Item}",
+            "play the album named {Item}"
+          ]
+        },
+        {
+          "name": "AMAZON.FallbackIntent",
           "samples": []
         },
         {
-          "name": "AMAZON.HelpIntent",
-          "samples": []
+          "name": "ResumeIntent",
+          "samples": [
+            "resume",
+            "restart",
+            "continue",
+            "keep going",
+            "go"
+          ]
         },
         {
           "name": "AMAZON.StopIntent",
-          "samples": []
+          "samples": [
+            "wait",
+            "pause",
+            "stop",
+            "hold on",
+            "just a minute"
+          ]
         },
         {
-          "name": "HelloWorldIntent",
+          "name": "RewindIntent",
           "samples": [
-            "hello"
+            "rewind",
+            "go back",
+            "instant replay",
+            "again"
           ]
+        },
+        {
+          "name": "AMAZON.RepeatIntent"
+        },
+        {
+          "name": "AMAZON.HelpIntent"
+        },
+        {
+          "name": "AMAZON.CancelIntent"
+        }
+      ],
+      "types": [
+        {
+          "values": [
+            {
+              "name": {
+                "value": "new orleans 2016"
+              }
+            },
+            {
+              "name": {
+                "value": "test"
+              }
+            },
+            {
+              "name": {
+                "value": "summer 2018"
+              }
+            },
+            {
+              "name": {
+                "value": "norway 2017"
+              }
+            },
+            {
+              "name": {
+                "value": "family 2016"
+              }
+            },
+            {
+              "name": {
+                "value": "year2015"
+              }
+            },
+            {
+              "name": {
+                "value": "year2014"
+              }
+            },
+            {
+              "name": {
+                "value": "too cute"
+              }
+            },
+            {
+              "name": {
+                "value": "new zealand december 2012"
+              }
+            },
+            {
+              "name": {
+                "value": "bend/oakridge june 2018"
+              }
+            },
+            {
+              "name": {
+                "value": "thailand"
+              }
+            },
+            {
+              "name": {
+                "value": "jewish stuff"
+              }
+            },
+            {
+              "name": {
+                "value": "year2012"
+              }
+            },
+            {
+              "name": {
+                "value": "trip to new orleans"
+              }
+            },
+            {
+              "name": {
+                "value": "joel's uploads"
+              }
+            },
+            {
+              "name": {
+                "value": "print"
+              }
+            },
+            {
+              "name": {
+                "value": "paris/spain/portugal may 2018"
+              }
+            },
+            {
+              "name": {
+                "value": "test2"
+              }
+            },
+            {
+              "name": {
+                "value": "europe 2015"
+              }
+            },
+            {
+              "name": {
+                "value": "joel 2017"
+              }
+            },
+            {
+              "name": {
+                "value": "israel-joel & rachel"
+              }
+            },
+            {
+              "name": {
+                "value": "year2008"
+              }
+            },
+            {
+              "name": {
+                "value": "iceland/southern spain march 2018"
+              }
+            },
+            {
+              "name": {
+                "value": "trips"
+              }
+            },
+            {
+              "name": {
+                "value": "europe 2016"
+              }
+            },
+            {
+              "name": {
+                "value": "croatia & slovenia 2015"
+              }
+            },
+            {
+              "name": {
+                "value": "year2013"
+              }
+            },
+            {
+              "name": {
+                "value": "lori-shared#2"
+              }
+            },
+            {
+              "name": {
+                "value": "schlitzenblitzen"
+              }
+            },
+            {
+              "name": {
+                "value": "scuba"
+              }
+            },
+            {
+              "name": {
+                "value": "alaska 2014"
+              }
+            },
+            {
+              "name": {
+                "value": "kathy - new zealand 2012"
+              }
+            },
+            {
+              "name": {
+                "value": "barcelona/italy november 2012"
+              }
+            },
+            {
+              "name": {
+                "value": "2 days in san jose and los altos hills"
+              }
+            },
+            {
+              "name": {
+                "value": "cabo2018"
+              }
+            },
+            {
+              "name": {
+                "value": "whacha eating?"
+              }
+            },
+            {
+              "name": {
+                "value": "sam's uploads"
+              }
+            },
+            {
+              "name": {
+                "value": "new zealand -abel tasman"
+              }
+            },
+            {
+              "name": {
+                "value": "toprintoct2019"
+              }
+            },
+            {
+              "name": {
+                "value": "year2016"
+              }
+            },
+            {
+              "name": {
+                "value": "aspen/southwest 2012"
+              }
+            },
+            {
+              "name": {
+                "value": "2015"
+              }
+            }
+          ],
+          "name": "LIST_OF_ITEMS"
         }
       ]
     }

@@ -71,8 +71,18 @@
     console.log(msg.data.remoteevent);
     console.log(Object.keys(msg.data));
 
-    const remoteEvent = msg.data.remoteevent;
+    if (msg.data.hasOwnProperty('remoteevent')) {
+      onRemoteEvent(msg.data['remoteevent']);
+    }
+  }
+
+  function onRemoteEvent(remoteEvent) {
+
     switch (remoteEvent) {
+      case 'SEL':
+        console.log('play album at row index: ');
+        console.log(highlightedRow - 1);
+        break;
       case 'NORTH':
         highlightedRow = highlightedRow - 1;
         break;
@@ -112,8 +122,6 @@
     var selectedRow = table.getElementsByTagName('tr')[rowIndex];
     selectedRow.style.backgroundColor = "yellow";
     selectedRow.className += " selected";
-
-    // unhighlight all other rows
   }
 
 </script>

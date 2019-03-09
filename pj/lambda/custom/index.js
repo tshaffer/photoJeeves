@@ -69,7 +69,8 @@ const AlbumHandler = {
 
     var pizza = true;
     console.log('pizza===true, accessToken: ');
-    console.log(brightSignInterface.accessToken);
+    console.log(brightSignInterface.getAccessToken());
+    // console.log(brightSignInterface.accessToken);
     if (!pizza && brightSignInterface.accessToken === '' && !brightSignInterface.noBsMode) {
       console.log('no accessToken in albumHandler');
       speakOutput = requestAttributes.t('NO_ACCESS_TOKEN');
@@ -89,7 +90,8 @@ const AlbumHandler = {
     else if (itemName !== '') {
       console.log('proceed in albumHandler');
       console.log('existing accessToken: ');
-      console.log(brightSignInterface.accessToken);
+      console.log(brightSignInterface.getAccessToken());
+      // console.log(brightSignInterface.accessToken);
 
       sessionAttributes.speakOutput = itemName;
       handlerInput.attributesManager.setSessionAttributes(sessionAttributes);

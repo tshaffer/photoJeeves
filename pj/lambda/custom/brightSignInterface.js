@@ -13,6 +13,12 @@ const request = require('request');
 const noBsMode = false;
 var accessToken = '';
 
+function getAccessToken() {
+  console.log('getAccessToken invoked');
+  console.log(accessToken);
+  return accessToken;
+}
+
 function getOAuthToken() {
 
   if (noBsMode) {
@@ -41,7 +47,7 @@ function getOAuthToken() {
       console.log('getOAuthToken: error');
       console.log(error);
     }
-    
+
     console.log('received response, accessToken:');
     console.log(response.body.access_token);
 
@@ -134,8 +140,9 @@ const sendCommandToBrightSign = (cmd) => {
 }
 
 module.exports.noBsMode = noBsMode;
-module.exports.accessToken = accessToken;
+// module.exports.accessToken = accessToken;
 module.exports.getOAuthToken = getOAuthToken;
+module.exports.getAccessToken = getAccessToken;
 module.exports.sendPlayAlbum = sendPlayAlbum;
 module.exports.sendPausePlayback = sendPausePlayback;
 module.exports.sendResumePlayback = sendResumePlayback;

@@ -41,6 +41,7 @@ Sub RunTpp()
 
   tpp.startPlayback = startPlayback
   tpp.pausePlayback = pausePlayback
+  tpp.rewind = rewind
   tpp.switchAlbum = switchAlbum
   tpp.nextPhoto = nextPhoto
 
@@ -107,6 +108,20 @@ Sub RunTpp()
   print "PhotoPlayer start"
   manifest$ = ReadAsciiFile(tpp.baseDir$ + ":/mediaItems/photoCollectionManifest.json")
   tpp.photoManifest = ParseJson(manifest$)
+  albums = tpp.photoManifest.albums
+  
+  for each albumName in albums
+    if albumName <> lcase(albumName) then
+      albumValue = albums[albumName]
+      albums.delete(albumName)
+      albums.addReplace(lcase(albumName), albumValue)
+    endif
+  next
+
+  print "Albums:"
+  for each albumName in albums
+    print albumName
+  next
 
   tpp.eventLoop(tpp.msgPort)
 
@@ -222,6 +237,8 @@ Sub processUdpEvent(event As Object)
       m.startPlayback()
     else if command$ = "pausePlayback" then
       m.pausePlayback()
+    else if command$ = "rewind" then
+      m.rewind()
     endif
   endif
 
@@ -292,6 +309,32 @@ End Sub
 
 Sub pausePlayback()
   m.timer.Stop()
+End Sub
+
+
+Sub rewind()
+
+  m.photoIndex% = m.photoIndex% - 1
+  if m.photoIndex% < 0 then
+    m.photoIndex% = m.numPhotos% - 1
+  endif
+
+  photoId$ = m.photoIds[m.photoIndex%]
+  idLength% = len(photoId$)
+  dir1$ = mid(photoId$, idLength% - 1, 1)
+  dir2$ = mid(photoId$, idLength%, 1)
+
+  filePath$ = m.baseDir$ + ":/mediaItems/" + dir1$ + "/" + dir2$ + "/" + photoId$ + ".jpg"
+  print filePath$
+
+  aa = {}
+  aa.filename = filePath$
+  ok = m.imagePlayer.DisplayFile(aa)
+  print "DisplayFile returned: ";ok
+  print filePath$
+
+  m.timer.Stop()
+
 End Sub
 
 
@@ -462,7 +505,8 @@ Sub PopulateUDPData(mVar As Object, root As Object)
   albums = tpp.photoManifest.albums
   albumNames = []
   for each albumName in albums
-    albumNames.push(albumName)
+    albumNames.push(lcase(albumName))
+    print albumName
   next
 
   for i = 0 to albumNames.count() - 1

@@ -14,8 +14,6 @@ const noBsMode = false;
 var accessToken = '';
 
 function getAccessToken() {
-  console.log('getAccessToken invoked');
-  console.log(accessToken);
   return accessToken;
 }
 
@@ -56,40 +54,8 @@ function getOAuthToken() {
 }
 
 const sendPlayAlbum = (albumName) => {
-  // test
-
-  console.log('sendPlayAlbum: entry, accessToken:');
-  console.log(accessToken);
-
   sendCommandToBrightSign('album!!' + albumName.toLowerCase());
   sendResumePlayback();
-  // var jsonBody =
-  // {
-  //   "grant_type": "password",
-  //   "username": "ted@brightsign.biz",
-  //   "password": "P@ssw0rd"
-  // };
-
-  // request({
-  //   url: 'https://oademo.brightsignnetwork.com/v1/token',
-  //   method: "POST",
-  //   auth: {
-  //     'user': '8ybX72Gt',
-  //     'pass': 'oJkARlw1-Ta2G-5WMo-gKJ3-5RxvHpaD5Ngk'
-  //   },
-  //   json: true,
-  //   body: jsonBody
-  // }, function (error, response, body) {
-
-  //   console.log('sendPlayAlbum: received response, accessToken:');
-  //   console.log(response.body.access_token);
-
-  //   accessToken = response.body.access_token;
-
-  //   sendCommandToBrightSign('album!!' + albumName.toLowerCase());
-  //   sendResumePlayback();
-  // });
-
 }
 
 const sendPausePlayback = () => {

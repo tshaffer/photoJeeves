@@ -17,7 +17,8 @@ Sub RunTpp()
 
   tpp.sysInfo = getSysInfo()
 
-  tpp.ear = newEar(tpp.msgPort)
+  ' tpp.ear = newEar(tpp.msgPort)
+  ' tpp.processEarHtmlEvent = processEarHtmlEvent
 
   imageSizeThreshold = {}
   imageSizeThreshold.width = 4042
@@ -36,8 +37,18 @@ Sub RunTpp()
   tpp.timer.setPort(tpp.msgPort)
   tpp.timer.SetElapsed(4, 0)
 
-  tpp.processHtmlEvent = processHtmlEvent
+  configIR = {}
+  configIR.source = "IR-in"
+  configIR.encodings = []
+  configIR.encodings[0] = "NEC"
+  tpp.remote = CreateObject("roIRReceiver", configIR)
+  tpp.remote.SetPort(tpp.msgPort)
+
+  tpp.albumsPage = newAlbumsPage(tpp.msgPort)
+  tpp.processAlbumsHtmlEvent = processAlbumsHtmlEvent
+
   tpp.processUdpEvent = processUdpEvent
+  tpp.processIRDownEvent = processIRDownEvent
 
   tpp.startPlayback = startPlayback
   tpp.pausePlayback = pausePlayback
@@ -185,6 +196,45 @@ Function getSysInfo() as Object
 End Function
 
 
+Function newAlbumsPage(msgPort As Object) As Object
+
+  t = {}
+  t.msgPort = msgPort
+
+  print "=== Setting up node server..."
+  t.htmlRect = CreateObject("roRectangle", 0, 0, 1920, 1080)
+  is = {
+      port: 2999
+  }
+  config = {
+      nodejs_enabled: true,
+      inspector_server: is,
+      brightsign_js_objects_enabled: true,
+      javascript_enabled: true,
+      url:  "file:///sd:/albums.html",
+      security_params: {websecurity: false}
+  }
+  t.htmlNet = CreateObject("roHtmlWidget", t.htmlRect, config)
+  t.htmlNet.setPort(t.msgPort)
+  t.htmlNet.AllowJavaScriptUrls({ all: "*" })
+  t.htmlNet.SetUserData("server")
+  t.htmlNet.Show()
+
+  return t
+
+End Function
+
+
+Sub processAlbumsHtmlEvent(event As Object)
+  eventData = event.GetData()
+  if eventData.reason = "message" then
+    print "processAlbumsHtmlEvent"
+    print "message:"
+    print eventData.message
+  endif
+End Sub
+
+
 Function newEar(msgPort As Object) As Object
 
   t = {}
@@ -214,7 +264,7 @@ Function newEar(msgPort As Object) As Object
 End Function
 
 
-Sub processHtmlEvent(event As Object)
+Sub processEarHtmlEvent(event As Object)
 
   eventData = event.GetData()
 '      print "reason:"
@@ -616,19 +666,15 @@ End Function
 
 Sub EventLoop(msgPort As Object)
 
-  ' m.switchAlbum("Lori-Shared#2")
-  ' m.switchAlbum("2015")
-  ' m.switchAlbum("test2")
-  ' m.switchAlbum("Trips")
-  ' m.startPlayback()
-
   while true
     event = wait(0, msgPort)
     print "event: " + type(event)
     if type(event) = "roTimerEvent" then
       m.nextPhoto()
+'    else if type(event) = "roHtmlWidgetEvent" then
+'      m.processEarHtmlEvent(event)
     else if type(event) = "roHtmlWidgetEvent" then
-      m.processHtmlEvent(event)
+      m.processAlbumsHtmlEvent(event)
     else if type(event) = "roHttpEvent" then
       userdata = event.GetUserData()
       if type(userdata) = "roAssociativeArray" and type(userdata.HandleEvent) = "roFunction" then
@@ -636,10 +682,60 @@ Sub EventLoop(msgPort As Object)
       endif
     else if type(event) = "roDatagramEvent" then
       m.processUdpEvent(event)
+    else if type(event) = "roIRDownEvent" then
+      m.processIRDownEvent(event)
     endif
   end while
 
 End Sub
+
+
+Sub processIRDownEvent(event As Object)
+  print "processIRDownEvent"
+  print event
+  remoteEvent$ = DecodeIRCode(event)
+  print remoteEvent$
+
+  print "postJSMessage"
+  payload = {}
+  payload.pizzatopping = "sausage"
+
+  m.albumsPage.htmlNet.PostJSMessage(payload)
+
+End Sub
+
+
+Function DecodeIRCode(irEvent As Object) As String
+
+  irCode = irEvent.GetCode()
+  irCode$ = StripLeadingSpaces(stri(irCode))
+
+  remoteCommands = {}
+	remoteCommands.AddReplace("7311376", "WEST")
+	remoteCommands.AddReplace("7311377", "EAST")
+	remoteCommands.AddReplace("7311378", "NORTH")
+	remoteCommands.AddReplace("7311379", "SOUTH")
+	remoteCommands.AddReplace("7311380", "SEL")
+	remoteCommands.AddReplace("7311381", "EXIT")
+	remoteCommands.AddReplace("7311382", "PWR")
+	remoteCommands.AddReplace("7311426", "MENU")
+	remoteCommands.AddReplace("7311384", "SEARCH")
+	remoteCommands.AddReplace("7311385", "PLAY")
+	remoteCommands.AddReplace("7311386", "FF")
+	remoteCommands.AddReplace("7311387", "RW")
+	remoteCommands.AddReplace("7311388", "PAUSE")
+	remoteCommands.AddReplace("7311389", "ADD")
+	remoteCommands.AddReplace("7311390", "SHUFFLE")
+	remoteCommands.AddReplace("7311391", "REPEAT")
+	remoteCommands.AddReplace("7311424", "VOLUP")
+	remoteCommands.AddReplace("7311425", "VOLDWN")
+	remoteCommands.AddReplace("7311426", "BRIGHT")
+
+  if not remoteCommands.DoesExist(irCode$) return ""
+
+  return remoteCommands.Lookup(irCode$)
+
+End Function
 
 
 Sub processUdpEvent(event As Object)

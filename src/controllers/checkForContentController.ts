@@ -440,6 +440,5 @@ function getPendingSynchronizations(
   const albumDifferences: PendingSyncStatus = getAlbumDifferences(googleAlbums, downloadedAlbums);
 
   const { googleAlbumsNotDownloaded, albumDifferencesByAlbumId, downloadedAlbumsNotInCloud } = albumDifferences;
-  debugger;
 
 }

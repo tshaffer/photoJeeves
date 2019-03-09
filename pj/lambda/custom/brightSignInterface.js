@@ -37,6 +37,11 @@ function getOAuthToken() {
     body: jsonBody
   }, function (error, response, body) {
 
+    if (error) {
+      console.log('getOAuthToken: error');
+      console.log(error);
+    }
+    
     console.log('received response, accessToken:');
     console.log(response.body.access_token);
 
@@ -47,34 +52,37 @@ function getOAuthToken() {
 const sendPlayAlbum = (albumName) => {
   // test
 
-  // sendCommandToBrightSign('album!!' + albumName.toLowerCase());
-  // sendResumePlayback();
-  var jsonBody =
-  {
-    "grant_type": "password",
-    "username": "ted@brightsign.biz",
-    "password": "P@ssw0rd"
-  };
+  console.log('sendPlayAlbum: entry, accessToken:');
+  console.log(accessToken);
 
-  request({
-    url: 'https://oademo.brightsignnetwork.com/v1/token',
-    method: "POST",
-    auth: {
-      'user': '8ybX72Gt',
-      'pass': 'oJkARlw1-Ta2G-5WMo-gKJ3-5RxvHpaD5Ngk'
-    },
-    json: true,
-    body: jsonBody
-  }, function (error, response, body) {
+  sendCommandToBrightSign('album!!' + albumName.toLowerCase());
+  sendResumePlayback();
+  // var jsonBody =
+  // {
+  //   "grant_type": "password",
+  //   "username": "ted@brightsign.biz",
+  //   "password": "P@ssw0rd"
+  // };
 
-    console.log('received response, accessToken:');
-    console.log(response.body.access_token);
+  // request({
+  //   url: 'https://oademo.brightsignnetwork.com/v1/token',
+  //   method: "POST",
+  //   auth: {
+  //     'user': '8ybX72Gt',
+  //     'pass': 'oJkARlw1-Ta2G-5WMo-gKJ3-5RxvHpaD5Ngk'
+  //   },
+  //   json: true,
+  //   body: jsonBody
+  // }, function (error, response, body) {
 
-    accessToken = response.body.access_token;
+  //   console.log('sendPlayAlbum: received response, accessToken:');
+  //   console.log(response.body.access_token);
 
-    sendCommandToBrightSign('album!!' + albumName.toLowerCase());
-    sendResumePlayback();
-  });
+  //   accessToken = response.body.access_token;
+
+  //   sendCommandToBrightSign('album!!' + albumName.toLowerCase());
+  //   sendResumePlayback();
+  // });
 
 }
 
@@ -115,8 +123,10 @@ const sendCommandToBrightSign = (cmd) => {
     body: jsonBody
   }, function (error, response, body) {
 
-    console.log('error');
-    console.log(error);
+    if (error) {
+      console.log('error');
+      console.log(error);
+    }
 
     console.log('received response, body:');
     console.log(response.body);

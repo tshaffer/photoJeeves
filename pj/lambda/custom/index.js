@@ -46,13 +46,13 @@ const LaunchRequestHandler = {
 
     handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
 
-    const cardTitle = 'PhotoJeeves - list of albums';
-    const cardContents = albumNames.ALBUM_NAMES.join('\n');
-    console.log(cardContents);
+    // const cardTitle = 'PhotoJeeves - list of albums';
+    // const cardContents = albumNames.ALBUM_NAMES.join('\n');
+    // console.log(cardContents);
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
-      .withSimpleCard(cardTitle, cardContents)
+      // .withSimpleCard(cardTitle, cardContents)
       .reprompt(repromptOutput)
       .getResponse();
   },
@@ -93,7 +93,7 @@ const AlbumHandler = {
 
       return handlerInput.responseBuilder
         .speak(sessionAttributes.speakOutput)
-        .reprompt(sessionAttributes.repromptSpeech)
+        // .reprompt(sessionAttributes.repromptSpeech)
         .getResponse();
     }
     else if (itemName !== '') {
@@ -107,7 +107,6 @@ const AlbumHandler = {
         .speak(sessionAttributes.speakOutput) // .reprompt(sessionAttributes.repromptSpeech)
         .withSimpleCard(cardTitle, itemName)
         .withShouldEndSession(false)
-        // .shouldEndSession(false)
         .getResponse();
     }
     else {
@@ -125,7 +124,7 @@ const AlbumHandler = {
 
       return handlerInput.responseBuilder
         .speak(sessionAttributes.speakOutput)
-        .reprompt(sessionAttributes.repromptSpeech)
+        // .reprompt(sessionAttributes.repromptSpeech)
         .getResponse();
     }
   }

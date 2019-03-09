@@ -67,7 +67,8 @@ const AlbumHandler = {
     const cardTitle = requestAttributes.t('DISPLAY_CARD_TITLE', requestAttributes.t('SKILL_NAME'), itemName);
     let speakOutput = "";
 
-    if (accessToken === '' && !brightSignInterface.noBsMode) {
+    var pizza = true;
+    if (!pizza && brightSignInterface.accessToken === '' && !brightSignInterface.noBsMode) {
       console.log('no accessToken in albumHandler');
       speakOutput = requestAttributes.t('NO_ACCESS_TOKEN');
       const repromptSpeech = requestAttributes.t('NO_ACCESS_TOKEN_REPROMPT');
@@ -84,6 +85,7 @@ const AlbumHandler = {
         .getResponse();
     }
     else if (itemName !== '') {
+      console.log('proceed in albumHandler');
 
       sessionAttributes.speakOutput = itemName;
       handlerInput.attributesManager.setSessionAttributes(sessionAttributes);

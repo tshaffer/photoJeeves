@@ -10,14 +10,15 @@ const dwsManager = require('@brightsign/bs-dws-manager');
 const getDwsConnector = dwsManager.getDwsConnector;
 const request = require('request');
 
-const noBsMode = true;
+const noBsMode = false;
+var accessToken = '';
 
 function getOAuthToken() {
 
   if (noBsMode) {
     return;
   }
-  
+
   var jsonBody =
   {
     "grant_type": "password",
@@ -44,8 +45,37 @@ function getOAuthToken() {
 }
 
 const sendPlayAlbum = (albumName) => {
-  sendCommandToBrightSign('album!!' + albumName.toLowerCase());
-  sendResumePlayback();
+  // test
+
+  // sendCommandToBrightSign('album!!' + albumName.toLowerCase());
+  // sendResumePlayback();
+  var jsonBody =
+  {
+    "grant_type": "password",
+    "username": "ted@brightsign.biz",
+    "password": "P@ssw0rd"
+  };
+
+  request({
+    url: 'https://oademo.brightsignnetwork.com/v1/token',
+    method: "POST",
+    auth: {
+      'user': '8ybX72Gt',
+      'pass': 'oJkARlw1-Ta2G-5WMo-gKJ3-5RxvHpaD5Ngk'
+    },
+    json: true,
+    body: jsonBody
+  }, function (error, response, body) {
+
+    console.log('received response, accessToken:');
+    console.log(response.body.access_token);
+
+    accessToken = response.body.access_token;
+
+    sendCommandToBrightSign('album!!' + albumName.toLowerCase());
+    sendResumePlayback();
+  });
+
 }
 
 const sendPausePlayback = () => {
@@ -65,7 +95,7 @@ const sendCommandToBrightSign = (cmd) => {
   if (noBsMode) {
     return;
   }
-  
+
   jsonBody = {
     'data': {
       'command': cmd,
@@ -94,6 +124,7 @@ const sendCommandToBrightSign = (cmd) => {
 }
 
 module.exports.noBsMode = noBsMode;
+module.exports.accessToken = accessToken;
 module.exports.getOAuthToken = getOAuthToken;
 module.exports.sendPlayAlbum = sendPlayAlbum;
 module.exports.sendPausePlayback = sendPausePlayback;

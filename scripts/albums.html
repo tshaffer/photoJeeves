@@ -2,6 +2,10 @@
 
 <head>
   <style>
+    .selected {
+      color: red;
+    }
+
     #customers {
       font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
       border-collapse: collapse;
@@ -60,6 +64,8 @@
 
 <script type="text/javascript">
 
+  console.log('eat pizza');
+
   var bsMessagePort = new BSMessagePort()
 
   bsMessagePort.onbsmessage = function (msg) {
@@ -68,9 +74,47 @@
     console.log(msg.data);
     console.log(msg.data.pizzatopping);
     console.log(Object.keys(msg.data));
+    highlightRow(2);
   }
 
-  console.log('eat pizza');
+  function highlightRow(rowIndex) {
+    var table = document.getElementById('customers');
+    var selectedRow = table.getElementsByTagName('tr')[rowIndex];
+    selectedRow.style.backgroundColor = "yellow";
+    selectedRow.className += " selected";
+  }
+
+//   function highlight_row() {
+//     var table = document.getElementById('customers');
+//     var cells = table.getElementsByTagName('td');
+
+//     for (var i = 0; i < cells.length; i++) {
+//         // Take each cell
+//         var cell = cells[i];
+
+//         // do something on onclick event for cell
+//         cell.onclick = function () {
+//             // Get the row id where the cell exists
+//             var rowId = this.parentNode.rowIndex;
+
+//             var rowsNotSelected = table.getElementsByTagName('tr');
+//             for (var row = 0; row < rowsNotSelected.length; row++) {
+//                 rowsNotSelected[row].style.backgroundColor = "";
+//                 rowsNotSelected[row].classList.remove('selected');
+//             }
+//             var rowSelected = table.getElementsByTagName('tr')[rowId];
+//             rowSelected.style.backgroundColor = "yellow";
+//             rowSelected.className += " selected";
+
+//             msg = 'The ID of the company is: ' + rowSelected.cells[0].innerHTML;
+//             msg += '\nThe cell value is: ' + this.innerHTML;
+//             alert(msg);
+//         }
+//     }
+
+// } //end of function
+
+
 
 </script>
 

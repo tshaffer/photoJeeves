@@ -698,7 +698,7 @@ Sub processIRDownEvent(event As Object)
 
   print "postJSMessage"
   payload = {}
-  payload.pizzatopping = "sausage"
+  payload.remoteEvent = remoteEvent$
 
   m.albumsPage.htmlNet.PostJSMessage(payload)
 

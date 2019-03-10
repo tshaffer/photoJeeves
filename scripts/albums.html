@@ -6,10 +6,17 @@
       color: red;
     }
 
+    #bodyId {
+      background-color: #d3d3d3;
+      margin-top: 32px;
+      margin-left: 48px;
+    }
+
     #albums {
+      font-size: 24px;
       font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
       border-collapse: collapse;
-      width: 100%;
+      width: 98%;
     }
 
     #albums td,
@@ -36,7 +43,7 @@
   </style>
 </head>
 
-<body id="bodyId" style="background-color:#d3d3d3" onload="pageLoaded()">
+<body id="bodyId" onload="pageLoaded()">
   <h1 style="color:white">Photo Jeeves albums</h1>
   <table id="albums">
     <tr>
@@ -70,6 +77,15 @@
   function onRemoteEvent(remoteEvent) {
 
     switch (remoteEvent) {
+      case 'HOME':
+        bsMessagePort.PostBSMessage({ event: 'showAlbumList' });
+        return;
+      case 'PAUSE':
+        bsMessagePort.PostBSMessage({ event: 'pausePlayback' });
+        return;
+      case 'PLAY':
+        bsMessagePort.PostBSMessage({ event: 'startPlayback' });
+        return;
       case 'SEL':
         console.log('play album at row index: ');
         console.log(highlightedRow - 1);
@@ -90,6 +106,7 @@
         console.log(String(payload));
 
         bsMessagePort.PostBSMessage({ event: event, payload: String(payload) })
+        return;
         break;
       case 'NORTH':
         highlightedRow = highlightedRow - 1;
@@ -146,6 +163,20 @@
     var selectedRow = table.getElementsByTagName('tr')[rowIndex];
     selectedRow.style.backgroundColor = "yellow";
     selectedRow.className += " selected";
+
+    // var myCells = selectedRow.getElementsByTagName('td');
+    // console.log('myCells');
+    // console.log(myCells);
+    // console.log(myCells.length);
+    // var selectedCell = myCells[1];
+    // selectedCell.style.backgroundColor = "yellow";
+    // selectedCell.className += " selected";
+
+    // var allCells = table.getElementsByTagName('td');
+    // console.log('allCells');
+    // console.log(allCells);
+    // console.log(allCells.length);
+
   }
 
 </script>

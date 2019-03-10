@@ -768,7 +768,14 @@ Sub processAlbumsHtmlEvent(event As Object)
   if eventData.reason = "message" then
     event = eventData.message.event
     payload = eventData.message.payload
-    if event = "playAlbum" then
+    if event = "showAlbumList" then
+      m.pausePlayback()
+      m.albumsPage.htmlNet.Show()
+    else if event = "pausePlayback" then
+      m.pausePlayback()
+    else if event = "startPlayback" then
+      m.startPlayback()
+    else if event = "playAlbum" then
       albumName = payload
       print "event is playAlbum, albumName is"
       print albumName

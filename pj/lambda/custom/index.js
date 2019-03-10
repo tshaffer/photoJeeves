@@ -12,6 +12,7 @@ const bsnConnectorConfig = bsnConnector.bsnConnectorConfig;
 const dwsManager = require('@brightsign/bs-dws-manager');
 const getDwsConnector = dwsManager.getDwsConnector;
 
+// TODO - ALBUM_SPECS
 const albumNames = require('./albums');
 
 console.log('getBrightSignInterface');
@@ -135,13 +136,13 @@ function getSlotItemName(itemSlot) {
   if (itemSlot && itemSlot.value) {
     const resolutions = itemSlot.resolutions;
     if (resolutions && resolutions.resolutionsPerAuthority) {
-      resolutions.resolutionsPerAuthority.forEach( (authorityData) => {
+      resolutions.resolutionsPerAuthority.forEach((authorityData) => {
         if (authorityData && authorityData.status && authorityData.status.code &&
           authorityData.status.code === 'ER_SUCCESS_MATCH') {
-            itemName = itemSlot.value;
-            return;
+          itemName = itemSlot.value;
+          return;
         }
-      }) 
+      })
     }
   }
   return itemName;
@@ -175,10 +176,10 @@ const StopHandler = {
     const cardTitle = requestAttributes.t('DISPLAY_CARD_TITLE', requestAttributes.t('SKILL_NAME'), speakOutput);
 
     return handlerInput.responseBuilder
-    .speak('pause playback')
-    .withSimpleCard(cardTitle, speakOutput)
-    .withShouldEndSession(false)
-    .getResponse();
+      .speak('pause playback')
+      .withSimpleCard(cardTitle, speakOutput)
+      .withShouldEndSession(false)
+      .getResponse();
   },
 };
 
@@ -203,10 +204,10 @@ const ResumeHandler = {
     const cardTitle = requestAttributes.t('DISPLAY_CARD_TITLE', requestAttributes.t('SKILL_NAME'), speakOutput);
 
     return handlerInput.responseBuilder
-    .speak(speakOutput)
-    .withSimpleCard(cardTitle, speakOutput)
-    .withShouldEndSession(false)
-    .getResponse();
+      .speak(speakOutput)
+      .withSimpleCard(cardTitle, speakOutput)
+      .withShouldEndSession(false)
+      .getResponse();
   },
 };
 
@@ -231,10 +232,10 @@ const RewindHandler = {
     const cardTitle = requestAttributes.t('DISPLAY_CARD_TITLE', requestAttributes.t('SKILL_NAME'), speakOutput);
 
     return handlerInput.responseBuilder
-    .speak(speakOutput)
-    .withSimpleCard(cardTitle, speakOutput)
-    .withShouldEndSession(false)
-    .getResponse();
+      .speak(speakOutput)
+      .withSimpleCard(cardTitle, speakOutput)
+      .withShouldEndSession(false)
+      .getResponse();
   },
 };
 
@@ -256,9 +257,10 @@ const ListAlbumsHandler = {
 
     const cardTitle = 'PhotoJeeves - list of albums';
 
+    // TODO - ALBUM_SPECS
     const cardContents = albumNames.ALBUM_NAMES.join(', ');
     console.log(cardContents);
-    
+
     return handlerInput.responseBuilder
       .speak(speakOutput)
       .withSimpleCard(cardTitle, cardContents)
@@ -459,7 +461,7 @@ function connectToPreviewServer() {
 
   bsnConnectorConfig(previewConfig);
 
-  const destination = {type: 'player', name: 'D7D834000029'};
+  const destination = { type: 'player', name: 'D7D834000029' };
   const payload = {
     route: '/v1/custom',
     method: 'PUT',
@@ -474,7 +476,7 @@ function connectToPreviewServer() {
   const password = 'P@ssw0rd';
   console.log('invoke session.activate');
   session.activate(userName, password)
-    .then( () => {
+    .then(() => {
       console.log('session.activate success');
       console.log('invoke bsnGetSession.fetchOAuthToken()');
       return bsnGetSession().fetchOAuthToken()

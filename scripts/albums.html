@@ -50,10 +50,7 @@
 
   console.log('eat pizza');
 
-  albumsJS = require('/storage/sd/albums.js');
-  console.log(albumsJS);
-  const albumNames = albumsJS.ALBUM_NAMES.join(', ');
-  console.log(albumNames);
+  albumsData = require('/storage/sd/albums.js');
 
   var bsMessagePort = new BSMessagePort();
   var highlightedRow = 1;
@@ -105,25 +102,18 @@
   }
 
   function buildAlbumsTable() {
+    var row;
+    var nameCell;
+    var photoCountCell;
     var table = document.getElementById("albums");
 
-    var row = table.insertRow();
-    var cell1 = row.insertCell(0);
-    cell1.innerHTML = 'Scuba';
-    var cell2 = row.insertCell(1);
-    cell2.innerHTML = '12';
-
-    row = table.insertRow();
-    cell1 = row.insertCell(0);
-    cell1.innerHTML = 'Trips';
-    cell2 = row.insertCell(1);
-    cell2.innerHTML = '22';
-
-    row = table.insertRow();
-    cell1 = row.insertCell(0);
-    cell1.innerHTML = 'Cabo2018';
-    cell2 = row.insertCell(1);
-    cell2.innerHTML = '61';
+    albumsData.ALBUM_SPECS.forEach( (albumData) => {
+      row = table.insertRow();
+      nameCell = row.insertCell(0);
+      nameCell.innerHTML = albumData.title;
+      photoCountCell = row.insertCell(1);
+      photoCountCell.innerHTML = albumData.photoCount.toString();
+    })
   }
 
   function highlightRow(rowIndex) {

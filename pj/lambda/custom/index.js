@@ -12,8 +12,10 @@ const bsnConnectorConfig = bsnConnector.bsnConnectorConfig;
 const dwsManager = require('@brightsign/bs-dws-manager');
 const getDwsConnector = dwsManager.getDwsConnector;
 
-// TODO - ALBUM_SPECS
-const albumNames = require('./albums');
+const albumsData = require('./photoJeevesAlbums.json');
+const albumNames = albumsData.ALBUM_SPECS.map( (albumData) => {
+  return albumData.title;
+})
 
 const brightSignInterface = require('./brightSignInterface');
 
@@ -253,10 +255,7 @@ const ListAlbumsHandler = {
     sessionAttributes.repromptSpeech = speakOutput;
 
     const cardTitle = 'PhotoJeeves - list of albums';
-
-    // TODO - ALBUM_SPECS
-    const cardContents = albumNames.ALBUM_NAMES.join(', ');
-    console.log(cardContents);
+    const cardContents = albumNames.join(', ');
 
     return handlerInput.responseBuilder
       .speak(speakOutput)

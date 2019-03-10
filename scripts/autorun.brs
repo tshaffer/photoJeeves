@@ -227,10 +227,31 @@ End Function
 
 Sub processAlbumsHtmlEvent(event As Object)
   eventData = event.GetData()
+'  print "reason:"
+'  print eventData.reason
   if eventData.reason = "message" then
     print "processAlbumsHtmlEvent"
     print "message:"
     print eventData.message
+    print "that was eventData.message"
+
+    event = eventData.message.event
+    payload = eventData.message.payload
+
+    if event = "playAlbum" then
+      albumName = payload
+      print "event is playAlbum, albumName is"
+      print albumName
+    endif
+
+'    message = eventData.message
+'    if type(message.event) = "roString" then
+'      print "invoke ParseJson"
+'      payload = ParseJson(message.payload)
+'      print "return from ParseJson"
+'      print "payload:"
+'      print payload
+'    endif
   endif
 End Sub
 

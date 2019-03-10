@@ -15,10 +15,7 @@ const getDwsConnector = dwsManager.getDwsConnector;
 // TODO - ALBUM_SPECS
 const albumNames = require('./albums');
 
-console.log('getBrightSignInterface');
 const brightSignInterface = require('./brightSignInterface');
-console.log('brightSignInterface');
-console.log(brightSignInterface);
 
 /* INTENT HANDLERS */
 const LaunchRequestHandler = {

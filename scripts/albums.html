@@ -72,6 +72,23 @@
       case 'SEL':
         console.log('play album at row index: ');
         console.log(highlightedRow - 1);
+        const selectedAlbumIndex = highlightedRow - 1;
+        const selectedAlbumSpec = albumsData.ALBUM_SPECS[selectedAlbumIndex];
+        const event = 'playAlbum';
+
+        console.log('selectedAlbumSpec');
+        console.log(selectedAlbumSpec);
+        console.log('selectedAlbumSpec');
+        console.log(selectedAlbumSpec);
+
+        const payload = selectedAlbumSpec.title;
+
+        console.log('payload');
+        console.log(payload);
+        console.log('String(payload)');
+        console.log(String(payload));
+        
+        bsMessagePort.PostBSMessage({event: event, payload: String(payload)})
         break;
       case 'NORTH':
         highlightedRow = highlightedRow - 1;

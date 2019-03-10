@@ -48,21 +48,12 @@
 
 <script type="text/javascript">
 
-/*
-    <tr>
-      <td>Scuba</td>
-      <td>12</td>
-    </tr>
-    <tr>
-      <td>Trips</td>
-      <td>22</td>
-    </tr>
-    <tr>
-      <td>Cabo2018</td>
-      <td>16</td>
-    </tr>
-*/
   console.log('eat pizza');
+
+  albumsJS = require('/storage/sd/albums.js');
+  console.log(albumsJS);
+  const albumNames = albumsJS.ALBUM_NAMES.join(', ');
+  console.log(albumNames);
 
   var bsMessagePort = new BSMessagePort();
   var highlightedRow = 1;

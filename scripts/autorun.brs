@@ -225,37 +225,6 @@ Function newAlbumsPage(msgPort As Object) As Object
 End Function
 
 
-Sub processAlbumsHtmlEvent(event As Object)
-  eventData = event.GetData()
-'  print "reason:"
-'  print eventData.reason
-  if eventData.reason = "message" then
-    print "processAlbumsHtmlEvent"
-    print "message:"
-    print eventData.message
-    print "that was eventData.message"
-
-    event = eventData.message.event
-    payload = eventData.message.payload
-
-    if event = "playAlbum" then
-      albumName = payload
-      print "event is playAlbum, albumName is"
-      print albumName
-    endif
-
-'    message = eventData.message
-'    if type(message.event) = "roString" then
-'      print "invoke ParseJson"
-'      payload = ParseJson(message.payload)
-'      print "return from ParseJson"
-'      print "payload:"
-'      print payload
-'    endif
-  endif
-End Sub
-
-
 Function newEar(msgPort As Object) As Object
 
   t = {}
@@ -739,6 +708,7 @@ Function DecodeIRCode(irEvent As Object) As String
 	remoteCommands.AddReplace("7311380", "SEL")
 	remoteCommands.AddReplace("7311381", "EXIT")
 	remoteCommands.AddReplace("7311382", "PWR")
+	remoteCommands.AddReplace("7311383", "HOME")
 	remoteCommands.AddReplace("7311426", "MENU")
 	remoteCommands.AddReplace("7311384", "SEARCH")
 	remoteCommands.AddReplace("7311385", "PLAY")
@@ -791,4 +761,24 @@ Sub processUdpEvent(event As Object)
   endif
 
 End Sub
+
+
+Sub processAlbumsHtmlEvent(event As Object)
+  eventData = event.GetData()
+  if eventData.reason = "message" then
+    event = eventData.message.event
+    payload = eventData.message.payload
+    if event = "playAlbum" then
+      albumName = payload
+      print "event is playAlbum, albumName is"
+      print albumName
+      m.albumsPage.htmlNet.Hide()
+      m.switchAlbum(albumName)
+      m.startPlayback()
+    endif
+  endif
+End Sub
+
+
+
 

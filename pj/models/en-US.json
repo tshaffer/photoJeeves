@@ -4,6 +4,25 @@
       "invocationName": "photo jeeves",
       "intents": [
         {
+          "name": "SearchIntent",
+          "slots": [
+            {
+              "name": "Query",
+              "type": "AMAZON.SearchQuery"
+            },
+            {
+              "name": "CityList",
+              "type": "AMAZON.US_CITY"
+            }
+          ],
+          "samples": [
+            "search for {Query} near me",
+            "find out {Query}",
+            "search for {Query}",
+            "give me details about {CityList}"
+          ]
+        },
+        {
           "name": "AlbumIntent",
           "slots": [
             {

@@ -336,6 +336,22 @@ const FallbackHandler = {
   },
 };
 
+const SearchHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && (handlerInput.requestEnvelope.request.intent.name === 'SearchIntent');
+  },
+  handle(handlerInput) {
+    const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
+    const speakOutput = 'Command not recognized, try again';
+
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .withShouldEndSession(false)
+      .getResponse();
+  },
+};
+
 const SessionEndedRequestHandler = {
   canHandle(handlerInput) {
     console.log("Inside SessionEndedRequestHandler");
@@ -423,6 +439,7 @@ exports.handler = skillBuilder
     RepeatHandler,
     ExitHandler,
     FallbackHandler,
+    SearchHandler,
     SessionEndedRequestHandler
   )
   .addRequestInterceptors(LocalizationInterceptor)

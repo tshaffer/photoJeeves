@@ -1,8 +1,13 @@
 import express from 'express';
 
 import { getCode, handleAuthCallback } from '../controllers/oauth2Controller';
-import { start } from '../controllers/homeController';
-import { checkForContent } from '../controllers/checkForContentController';
+import {
+  generateAlbumsList,
+  start,
+} from '../controllers/homeController';
+import { 
+  checkForContent,
+} from '../controllers/checkForContentController';
 import { eventHandler } from '../controllers/events';
 
 export class Routes {
@@ -15,7 +20,8 @@ export class Routes {
     app.get('/', getCode);
     app.get('/authCallback.*', handleAuthCallback);
     app.get('/checkForNewContent', checkForContent);
-    app.get('/events', eventHandler)
+    app.get('/generateAlbumsList', generateAlbumsList);
+    app.get('/events', eventHandler);
     app.get('/home', start);
   }
 }

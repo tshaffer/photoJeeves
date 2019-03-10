@@ -249,6 +249,8 @@ const ListAlbumsHandler = {
 
     console.log('ListAlbumsIntent received');
 
+    brightSignInterface.sendShowAlbumList();
+
     const speakOutput = 'list all albums';
 
     sessionAttributes.speakOutput = speakOutput;

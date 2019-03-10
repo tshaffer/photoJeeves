@@ -70,6 +70,10 @@ const sendRewindPlayback = () => {
   sendCommandToBrightSign('rewind');
 }
 
+const sendShowAlbumList = () => {
+  sendCommandToBrightSign('showAlbumList');
+}
+
 const sendExit = () => {
   sendCommandToBrightSign('exit');
 }
@@ -117,4 +121,5 @@ module.exports.sendPlayAlbum = sendPlayAlbum;
 module.exports.sendPausePlayback = sendPausePlayback;
 module.exports.sendResumePlayback = sendResumePlayback;
 module.exports.sendRewindPlayback = sendRewindPlayback;
+module.exports.sendShowAlbumList = sendShowAlbumList
 module.exports.sendExit = sendExit;

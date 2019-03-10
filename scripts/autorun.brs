@@ -55,6 +55,8 @@ Sub RunTpp()
   tpp.rewind = rewind
   tpp.switchAlbum = switchAlbum
   tpp.nextPhoto = nextPhoto
+  tpp.hideAlbumList = hideAlbumList
+  tpp.showAlbumList = showAlbumList
 
   tpp.udpNotificationAddress$ = "224.0.200.200"
   tpp.udpNotificationPort% = 5000
@@ -344,6 +346,16 @@ Sub rewind()
 
   m.timer.Stop()
 
+End Sub
+
+
+Sub hideAlbumList()
+  m.albumsPage.htmlNet.Hide()
+End Sub
+
+
+Sub showAlbumList()
+  m.albumsPage.htmlNet.Show()
 End Sub
 
 
@@ -744,6 +756,7 @@ Sub processUdpEvent(event As Object)
       if commandComponents.Count() > 1 then
         albumName$ = commandComponents[1]
         print "Switch to album: ";albumName$
+        m.hideAlbumList()
         m.switchAlbum(albumName$)
       else
         print "Syntax error: album name missing for album command"
@@ -754,6 +767,9 @@ Sub processUdpEvent(event As Object)
       m.pausePlayback()
     else if command$ = "rewind" then
       m.rewind()
+    else if command$ = "showAlbumList" then
+      m.pausePlayback()
+      m.showAlbumList()
     else if command$ = "exit" then
       print "received exit command from the cloud"
       m.pausePlayback()
@@ -770,7 +786,7 @@ Sub processAlbumsHtmlEvent(event As Object)
     payload = eventData.message.payload
     if event = "showAlbumList" then
       m.pausePlayback()
-      m.albumsPage.htmlNet.Show()
+      m.showAlbumList()
     else if event = "pausePlayback" then
       m.pausePlayback()
     else if event = "startPlayback" then
@@ -779,7 +795,7 @@ Sub processAlbumsHtmlEvent(event As Object)
       albumName = payload
       print "event is playAlbum, albumName is"
       print albumName
-      m.albumsPage.htmlNet.Hide()
+      m.hideAlbumList()
       m.switchAlbum(albumName)
       m.startPlayback()
     endif

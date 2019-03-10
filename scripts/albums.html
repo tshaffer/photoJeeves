@@ -50,20 +50,8 @@
 
   console.log('eat pizza');
 
-  albumsData = require('/storage/sd/albums.js');
-  albumsDataJson = require('/storage/sd/photoJeevesAlbums.json');
-  console.log('albumsDataJson');
-  console.log(albumsDataJson);
-  console.log(Object.keys(albumsDataJson));
-  const albums = albumsDataJson.ALBUM_SPECS;
-  console.log(albums);
-  albums.forEach((album) => {
-    const title = album.title;
-    console.log(title);
-    const photoCount = album.photoCount;
-    console.log(photoCount);
-  });
-
+  const albumsData = require('/storage/sd/photoJeevesAlbums.json');
+  const albums = albumsData.ALBUM_SPECS;
 
   var bsMessagePort = new BSMessagePort();
   var highlightedRow = 1;
@@ -94,7 +82,7 @@
         console.log('selectedAlbumSpec');
         console.log(selectedAlbumSpec);
 
-        const payload = selectedAlbumSpec.title;
+        const payload = selectedAlbumSpec.title.toLowerCase();
 
         console.log('payload');
         console.log(payload);
@@ -137,13 +125,13 @@
     var photoCountCell;
     var table = document.getElementById("albums");
 
-    albumsData.ALBUM_SPECS.forEach((albumData) => {
+    albums.forEach((album) => {
       row = table.insertRow();
       nameCell = row.insertCell(0);
-      nameCell.innerHTML = albumData.title;
+      nameCell.innerHTML = album.title;
       photoCountCell = row.insertCell(1);
-      photoCountCell.innerHTML = albumData.photoCount.toString();
-    })
+      photoCountCell.innerHTML = album.photoCount.toString();
+    });
   }
 
   function highlightRow(rowIndex) {

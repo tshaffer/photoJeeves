@@ -51,6 +51,19 @@
   console.log('eat pizza');
 
   albumsData = require('/storage/sd/albums.js');
+  albumsDataJson = require('/storage/sd/photoJeevesAlbums.json');
+  console.log('albumsDataJson');
+  console.log(albumsDataJson);
+  console.log(Object.keys(albumsDataJson));
+  const albums = albumsDataJson.ALBUM_SPECS;
+  console.log(albums);
+  albums.forEach((album) => {
+    const title = album.title;
+    console.log(title);
+    const photoCount = album.photoCount;
+    console.log(photoCount);
+  });
+
 
   var bsMessagePort = new BSMessagePort();
   var highlightedRow = 1;
@@ -87,8 +100,8 @@
         console.log(payload);
         console.log('String(payload)');
         console.log(String(payload));
-        
-        bsMessagePort.PostBSMessage({event: event, payload: String(payload)})
+
+        bsMessagePort.PostBSMessage({ event: event, payload: String(payload) })
         break;
       case 'NORTH':
         highlightedRow = highlightedRow - 1;
@@ -124,7 +137,7 @@
     var photoCountCell;
     var table = document.getElementById("albums");
 
-    albumsData.ALBUM_SPECS.forEach( (albumData) => {
+    albumsData.ALBUM_SPECS.forEach((albumData) => {
       row = table.insertRow();
       nameCell = row.insertCell(0);
       nameCell.innerHTML = albumData.title;

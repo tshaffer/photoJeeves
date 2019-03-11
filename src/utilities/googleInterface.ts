@@ -42,9 +42,6 @@ export function getGoogleAlbums(): Promise<GoogleAlbum[]> {
         allGoogleAlbums = allGoogleAlbums.concat(googleAlbums);
 
         if (result.albums.length === 0 || result.nextPageToken === undefined) {
-          console.log('retrieved all albums');
-          console.log('Albums:');
-          console.log(allGoogleAlbums);
           resolve(allGoogleAlbums);
         }
         else {

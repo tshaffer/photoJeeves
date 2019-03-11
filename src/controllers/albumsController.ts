@@ -12,6 +12,8 @@ export function showAlbumsStatus(request: Request, response: Response) {
     console.log('showAlbumsStatus');
     console.log(googleAlbums);
 
-    response.render('albums');
+    response.render('albums', {
+      albums: googleAlbums,
+    });
   });
 }

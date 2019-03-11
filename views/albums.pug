@@ -3,3 +3,16 @@ extends layout
 block content
   h1 PhotoJeeves
   h2 Albums
+  table
+    thead
+      tr
+        th Google Album Name
+        th Google # of Photos
+        th Google Id
+    tbody
+      each album in albums
+        tr
+          td= album.title
+          td= album.mediaItemsCount
+          td= album.googleAlbumId
+    

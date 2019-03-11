@@ -5,6 +5,9 @@ import {
   generateAlbumsList,
   start,
 } from '../controllers/homeController';
+import {
+  showAlbumsStatus,
+} from '../controllers/albumsController';
 import { 
   checkForContent,
 } from '../controllers/checkForContentController';
@@ -21,6 +24,7 @@ export class Routes {
     app.get('/authCallback.*', handleAuthCallback);
     app.get('/checkForNewContent', checkForContent);
     app.get('/generateAlbumsList', generateAlbumsList);
+    app.get('/showsAlbumsStatus', showAlbumsStatus);
     app.get('/events', eventHandler);
     app.get('/home', start);
   }

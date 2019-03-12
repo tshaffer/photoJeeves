@@ -8,11 +8,14 @@ block content
       tr
         th Google Album Name
         th Google # of Photos
+        th Db Album Name
+        th Db # of Photos
         th Google Id
     tbody
       each album in albums
         tr
-          td= album.title
-          td= album.mediaItemsCount
-          td= album.googleAlbumId
+          td= album.googleTitle
+          td= album.googlePhotoCount
+          td= album.dbTitle
+          td= album.dbPhotoCount
     

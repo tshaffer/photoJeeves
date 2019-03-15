@@ -17,7 +17,7 @@ export function getDbAlbums(): Promise<DbAlbum[]> {
       return {
         googleId: result.id,
         title: result.title,
-        mediaItemIds: [getDbMediaItemIds(result.mediaItemIds)],
+        mediaItemIds: getDbMediaItemIds(result.mediaItemIds),
       };
     });
     return Promise.resolve(dbAlbums);

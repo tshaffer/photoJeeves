@@ -75,7 +75,7 @@ export function checkForContent(request: Request, response: Response) {
 
 function getDownloadedMediaItems(): Promise<DbMediaItem[]> {
   console.log('begin: retrieve downloadedMediaItems from mongoose');
-  const query = MediaItem.find({ 'downloaded': true });
+  const query = MediaItem.find({ downloaded: true });
   return query.exec().then((results) => {
     const dbMediaItems: DbMediaItem[] = results.map((result: any) => {
       return {

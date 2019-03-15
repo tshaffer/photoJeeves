@@ -6,7 +6,10 @@ import {
   start,
 } from '../controllers/homeController';
 import {
+  downloadNewAlbums,
+  regenerateManifest,
   showAlbumsStatus,
+  synchronizeAlbumNames,
 } from '../controllers/albumsController';
 import { 
   checkForContent,
@@ -25,6 +28,9 @@ export class Routes {
     app.get('/checkForNewContent', checkForContent);
     app.get('/generateAlbumsList', generateAlbumsList);
     app.get('/showsAlbumsStatus', showAlbumsStatus);
+    app.get('/synchronizeAlbumNames', synchronizeAlbumNames);
+    app.get('/downloadNewAlbums', downloadNewAlbums);
+    app.get('/regenerateManifest', regenerateManifest);
     app.get('/events', eventHandler);
     app.get('/home', start);
   }

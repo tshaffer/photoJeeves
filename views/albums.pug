@@ -2,7 +2,15 @@ extends layout
 
 block content
   h1 PhotoJeeves
-  h2 Albums
+  h2 Albums Status
+  p=''
+  a(href='synchronizeAlbumNames') Synchronize album names
+  p=''
+  a(href='downloadNewAlbums') Download new albums
+  p=''
+  a(href='regenerateManifest') Regenerate manifest from db
+  p=''
+
   table
     thead
       tr
@@ -10,7 +18,7 @@ block content
         th Google # of Photos
         th Db Album Name
         th Db # of Photos
-        th Google Id
+        th Hard disk # of Photos
     tbody
       each album in albums
         tr
@@ -18,4 +26,5 @@ block content
           td= album.googlePhotoCount
           td= album.dbTitle
           td= album.dbPhotoCount
+          td= album.hdPhotoCount
     

@@ -2,11 +2,17 @@ import { Request, Response } from 'express';
 
 import * as fse from 'fs-extra';
 
+import { Query, Document } from 'mongoose';
+
 import {
-  getGoogleAlbums,
+  isNil,
+} from 'lodash';
+
+import {
+  getGoogleAlbums, fetchAlbumContents,
 } from '../utilities/googleInterface';
 import {
-  getDbAlbums,
+  getDbAlbums, getAllMediaItems as getAllDbMediaItems,
 } from '../utilities/dbInterface';
 
 import {
@@ -15,6 +21,7 @@ import {
 
 import Album from '../models/album';
 import MediaItem from '../models/mediaItem';
+import { getAccessToken } from './oauth2Controller';
 
 interface CompositeAlbum {
   id: string;
@@ -122,8 +129,92 @@ function getAlbumsListFromManifest(): AlbumsByTitle {
   return photoJeevesAlbums;
 }
 
+function buildAllDbMediaItemsById(dbMediaItems: Document[]): Map<string, DbMediaItem> {
+
+  const dbMediaItemsByMediaItemId: Map<string, DbMediaItem> = new Map();
+  dbMediaItems.forEach((rawDbMediaItem: Document) => {
+    const { fileName, filePath, mimeType, width, height, creationTime, downloaded, baseUrl, productUrl } = rawDbMediaItem as any;
+    const dbMediaItem: DbMediaItem = {
+      googleMediaItemId: rawDbMediaItem.id,
+      fileName,
+      filePath,
+      mimeType,
+      width,
+      height,
+      creationTime,
+      downloaded,
+      baseUrl,
+      productUrl,
+    };
+    dbMediaItemsByMediaItemId.set(dbMediaItem.googleMediaItemId, dbMediaItem);
+  });
+  return dbMediaItemsByMediaItemId;
+}
+
 export function downloadNewAlbums(request: Request, response: Response) {
+
   console.log('downloadNewAlbums invoked');
+
+  const accessToken = getAccessToken();
+  if (isNil(accessToken)) {
+    debugger;
+  }
+
+  // TODO - check that compositeAlbumsById is built.
+
+  const albumIds: string[] = [];
+
+  Object.keys(compositeAlbumsById).forEach((compositeAlbumId: string) => {
+    const compositeAlbum: CompositeAlbum = compositeAlbumsById[compositeAlbumId];
+    const { id, googleTitle } = compositeAlbum;
+    if (!compositeAlbum.inDb) {
+      console.log('download album:');
+      console.log(googleTitle);
+
+      albumIds.push(compositeAlbum.id);
+    }
+  });
+
+  let allMediaItemIdsByAlbumId: any;
+
+  const mediaItemIdsToDownload: string[] = [];
+
+  console.log('fetchAlbumContents');
+
+  fetchAlbumContents(accessToken, albumIds)
+    .then((mediaItemIdsByAlbumId) => {
+      allMediaItemIdsByAlbumId = mediaItemIdsByAlbumId;
+      return getAllDbMediaItems();
+    }).then((dbMediaItems: Document[]) => {
+      console.log('return from getAllDbMediaItems');
+      const dbMediaItemsByMediaItemId: Map<string, DbMediaItem> = buildAllDbMediaItemsById(dbMediaItems);
+
+      // iterate through all albums, mediaItems - compare against dbMediaItemsByMediaItemId
+      Object.keys(allMediaItemIdsByAlbumId).forEach((albumId: string) => {
+        const mediaItemIds: any[] = allMediaItemIdsByAlbumId[albumId];
+        mediaItemIds.forEach((mediaItemId: string) => {
+          if (!dbMediaItemsByMediaItemId.hasOwnProperty(mediaItemId)) {
+            mediaItemIdsToDownload.push(mediaItemId);
+          }
+        });
+      });
+
+      console.log('number of mediaItems to download:');
+      console.log(mediaItemIdsToDownload.length);
+      console.log(mediaItemIdsToDownload);
+    });
+
+  //  next steps
+  //    generate a list of all the mediaItemIds required for these albums
+  //    compare to list of mediaItemIds that are
+  //      in the db?
+  //      on the hd?
+  //    download the media items associated with those mediaItemIds
+  //      where do they go?
+  //      manual copy to hd?
+  //      or what?
+  //    upload the db
+  //    update manifest?
 }
 
 export function synchronizeAlbumNames(request: Request, response: Response) {
@@ -137,7 +228,7 @@ export function synchronizeAlbumNames(request: Request, response: Response) {
         Album.update({ id }, { $set: { title: googleTitle } }, () => {
           console.log('rename ', dbTitle, ' to ', googleTitle);
         });
-      }  
+      }
     }
   });
 }
@@ -155,22 +246,22 @@ export function regenerateManifest(request: Request, response: Response) {
         .then((albumsQueryResults: any) => {
 
           const mediaItemsById: any = {};
-          mediaItemQueryResults.forEach( (mediaItem: any) => {
+          mediaItemQueryResults.forEach((mediaItem: any) => {
             mediaItemsById[mediaItem.id] = {
               id: mediaItem.id,
               fileName: mediaItem.fileName,
               width: mediaItem.width,
               height: mediaItem.height,
-            } ;
+            };
           });
 
           const albumItemsByAlbumName: any = {};
-          albumsQueryResults.forEach( (album: any) => {
+          albumsQueryResults.forEach((album: any) => {
             const albumName: string = album.title;
             const albumId: string = album.id;
             const mediaItemIdsInAlbum: any[] = [];
             const dbMediaItemIdsInAlbum = album.mediaItemIds;
-// tslint:disable-next-line: prefer-for-of
+            // tslint:disable-next-line: prefer-for-of
             for (let j = 0; j < dbMediaItemIdsInAlbum.length; j++) {
               mediaItemIdsInAlbum.push(dbMediaItemIdsInAlbum[j]);
             }

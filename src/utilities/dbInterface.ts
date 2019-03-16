@@ -1,4 +1,5 @@
 import Album from '../models/album';
+import MediaItem from '../models/mediaItem';
 
 import {
   DbAlbum,
@@ -8,6 +9,7 @@ import {
   GoogleMediaItem,
   AlbumWithDifferences,
 } from '../types';
+import { Query, Document } from 'mongoose';
 
 export function getDbAlbums(): Promise<DbAlbum[]> {
   console.log('begin: retrieve downloadedAlbums from mongoose');
@@ -28,6 +30,12 @@ function getDbMediaItemIds(dbMediaItemIds: any[]): string[] {
   return dbMediaItemIds.map((mediaItemId: any) => {
     return mediaItemId.toString();
   });
+}
+
+export function getAllMediaItems(): Promise<Document[]> {
+  console.log('getAllMediaItems');
+  const query = MediaItem.find({});
+  return query.exec();
 }
 
 

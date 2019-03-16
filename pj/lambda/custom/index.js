@@ -328,7 +328,7 @@ const FallbackHandler = {
   },
   handle(handlerInput) {
     const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
-    const speakOutput = 'Command not recognized, try again';
+    const speakOutput = 'Fallback handler, command not recognized, try again';
 
     return handlerInput.responseBuilder
       .speak(speakOutput)
@@ -344,7 +344,33 @@ const SearchHandler = {
   },
   handle(handlerInput) {
     const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
-    const speakOutput = 'Command not recognized, try again';
+
+    console.log('SearchHandler');
+    console.log(requestAttributes);
+    console.log(handlerInput);
+    console.log(handlerInput.requestEnvelope);
+    console.log(handlerInput.requestEnvelope.request);
+    console.log(handlerInput.requestEnvelope.request.intent);
+    console.log(handlerInput.requestEnvelope.request.intent.slots);
+    console.log(handlerInput.requestEnvelope.request.intent.slots.Item);
+
+    const slots = handlerInput.requestEnvelope.request.intent.slots;
+
+    console.log('slots:');
+    console.log(slots);
+    console.log('slots keys:');
+    console.log(Object.keys(slots));
+    console.log('Query:');
+    console.log(slots.Query);
+    console.log('Query value: ');
+    console.log(slots.Query.value);
+
+    var speakOutput = 'Search Handler invoked, query not recognized';
+
+    const queryValue = slots.Query.value;
+    if (queryValue && queryValue !== '') {
+      speakOutput = 'Search handler invoked, query item is ' + queryValue;
+    }
 
     return handlerInput.responseBuilder
       .speak(speakOutput)

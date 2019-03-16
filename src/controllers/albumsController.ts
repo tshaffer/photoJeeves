@@ -9,7 +9,7 @@ import {
 } from 'lodash';
 
 import {
-  getGoogleAlbums, fetchAlbumContents,
+  getGoogleAlbums, fetchAlbumContents, getAllMediaItemIds,
 } from '../utilities/googleInterface';
 import {
   getDbAlbums, getAllMediaItems as getAllDbMediaItems,
@@ -44,6 +44,7 @@ interface CompositeAlbumMap {
 }
 
 const compositeAlbumsById: CompositeAlbumMap = {};
+let downloadNewAlbumsInProgress = false;
 
 export function showAlbumsStatus(request: Request, response: Response) {
 
@@ -153,56 +154,64 @@ function buildAllDbMediaItemsById(dbMediaItems: Document[]): Map<string, DbMedia
 
 export function downloadNewAlbums(request: Request, response: Response) {
 
-  console.log('downloadNewAlbums invoked');
-
-  const accessToken = getAccessToken();
-  if (isNil(accessToken)) {
-    debugger;
+  if (downloadNewAlbumsInProgress) {
+    console.log('downloadNewAlbums already in progress');
   }
 
-  // TODO - check that compositeAlbumsById is built.
+  downloadNewAlbumsInProgress = true;
 
-  const albumIds: string[] = [];
+  console.log('downloadNewAlbums invoked');
 
-  Object.keys(compositeAlbumsById).forEach((compositeAlbumId: string) => {
-    const compositeAlbum: CompositeAlbum = compositeAlbumsById[compositeAlbumId];
-    const { id, googleTitle } = compositeAlbum;
-    if (!compositeAlbum.inDb) {
-      console.log('download album:');
-      console.log(googleTitle);
+  getAllMediaItemIds();
 
-      albumIds.push(compositeAlbum.id);
-    }
-  });
+  // const accessToken = getAccessToken();
+  // if (isNil(accessToken)) {
+  //   debugger;
+  // }
 
-  let allMediaItemIdsByAlbumId: any;
+  // // TODO - check that compositeAlbumsById is built.
 
-  const mediaItemIdsToDownload: string[] = [];
+  // const albumIds: string[] = [];
 
-  console.log('fetchAlbumContents');
+  // Object.keys(compositeAlbumsById).forEach((compositeAlbumId: string) => {
+  //   const compositeAlbum: CompositeAlbum = compositeAlbumsById[compositeAlbumId];
+  //   const { id, googleTitle } = compositeAlbum;
+  //   if (!compositeAlbum.inDb) {
+  //     console.log('download album:');
+  //     console.log(googleTitle);
 
-  fetchAlbumContents(accessToken, albumIds)
-    .then((mediaItemIdsByAlbumId) => {
-      allMediaItemIdsByAlbumId = mediaItemIdsByAlbumId;
-      return getAllDbMediaItems();
-    }).then((dbMediaItems: Document[]) => {
-      console.log('return from getAllDbMediaItems');
-      const dbMediaItemsByMediaItemId: Map<string, DbMediaItem> = buildAllDbMediaItemsById(dbMediaItems);
+  //     albumIds.push(compositeAlbum.id);
+  //   }
+  // });
 
-      // iterate through all albums, mediaItems - compare against dbMediaItemsByMediaItemId
-      Object.keys(allMediaItemIdsByAlbumId).forEach((albumId: string) => {
-        const mediaItemIds: any[] = allMediaItemIdsByAlbumId[albumId];
-        mediaItemIds.forEach((mediaItemId: string) => {
-          if (!dbMediaItemsByMediaItemId.hasOwnProperty(mediaItemId)) {
-            mediaItemIdsToDownload.push(mediaItemId);
-          }
-        });
-      });
+  // let allMediaItemIdsByAlbumId: any;
 
-      console.log('number of mediaItems to download:');
-      console.log(mediaItemIdsToDownload.length);
-      console.log(mediaItemIdsToDownload);
-    });
+  // const mediaItemIdsToDownload: string[] = [];
+
+  // console.log('fetchAlbumContents');
+
+  // fetchAlbumContents(accessToken, albumIds)
+  //   .then((mediaItemIdsByAlbumId) => {
+  //     allMediaItemIdsByAlbumId = mediaItemIdsByAlbumId;
+  //     return getAllDbMediaItems();
+  //   }).then((dbMediaItems: Document[]) => {
+  //     console.log('return from getAllDbMediaItems');
+  //     const dbMediaItemsByMediaItemId: Map<string, DbMediaItem> = buildAllDbMediaItemsById(dbMediaItems);
+
+  //     // iterate through all albums, mediaItems - compare against dbMediaItemsByMediaItemId
+  //     Object.keys(allMediaItemIdsByAlbumId).forEach((albumId: string) => {
+  //       const mediaItemIds: any[] = allMediaItemIdsByAlbumId[albumId];
+  //       mediaItemIds.forEach((mediaItemId: string) => {
+  //         if (!dbMediaItemsByMediaItemId.hasOwnProperty(mediaItemId)) {
+  //           mediaItemIdsToDownload.push(mediaItemId);
+  //         }
+  //       });
+  //     });
+
+  //     console.log('number of mediaItems to download:');
+  //     console.log(mediaItemIdsToDownload.length);
+  //     console.log(mediaItemIdsToDownload);
+  //   });
 
   //  next steps
   //    generate a list of all the mediaItemIds required for these albums

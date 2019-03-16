@@ -70,7 +70,7 @@ export function fetchAlbumContents(accessToken: string, albumIds: string[]): Pro
       const albumId = albumIds[albumIdIndex];
       if (isNil(mediaItemIdsByAlbumId[albumId])) {
         mediaItemIdsByAlbumId[albumId] = [];
-      } 
+      }
 
       let apiEndpoint = 'https://photoslibrary.googleapis.com/v1/mediaItems:search?pageSize=100';
       if (pageToken !== '' && (typeof pageToken !== 'undefined')) {
@@ -105,6 +105,50 @@ export function fetchAlbumContents(accessToken: string, albumIds: string[]): Pro
 
     processFetchAlbumContents(0, '');
   });
+}
+
+export function getAllMediaItemIds(): any {
+
+  const accessToken = oauth2Controller.getAccessToken();
+
+  console.log('start sync process');
+  console.log(accessToken);
+
+  const apiEndpoint = 'https://photoslibrary.googleapis.com';
+
+  console.log('invoke: ', apiEndpoint + '/v1/mediaItems');
+
+  let totalNumberOfMediaItems = 0;
+  const processGetMediaFiles = (pageToken: string) => {
+    let url = apiEndpoint + '/v1/mediaItems?pageSize=100';
+    if (pageToken !== '') {
+      url = url + '&pageToken=' + pageToken;
+    }
+    requestPromise.get(url, {
+      headers: { 'Content-Type': 'application/json' },
+      json: true,
+      auth: { bearer: accessToken },
+    }).then((result) => {
+
+      console.log(result.mediaItems.length);
+      console.log(result.nextPageToken);
+
+      if (result.mediaItems.length === 0 || result.nextPageToken === undefined) {
+        console.log('retrieved all mediaItems');
+        console.log('total number of media items:');
+        console.log(totalNumberOfMediaItems);
+        debugger;
+      }
+      else {
+        totalNumberOfMediaItems = totalNumberOfMediaItems + result.mediaItems.length;
+        console.log('running total is: ', totalNumberOfMediaItems);
+
+        processGetMediaFiles(result.nextPageToken);
+      }
+    });
+  };
+
+  processGetMediaFiles('');
 }
 
 

@@ -6,11 +6,14 @@ import {
   start,
 } from '../controllers/homeController';
 import {
-  downloadNewAlbums,
   regenerateManifest,
   showAlbumsStatus,
   synchronizeAlbumNames,
 } from '../controllers/albumsController';
+import {
+  downloadNewAlbums,
+} from '../controllers/downloadNewAlbumsController';
+
 import { 
   checkForContent,
 } from '../controllers/checkForContentController';

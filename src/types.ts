@@ -75,3 +75,25 @@ export interface GoogleMediaItem {
   mimeType: string;
   productUrl: string;
 }
+
+export interface CompositeAlbum {
+  id: string;
+  googleTitle: string;
+  googlePhotoCount: number;
+  inDb: boolean;
+  dbTitle: string;
+  dbPhotoCount: number;
+  onHd: boolean;
+  hdTitle?: string;
+  hdPhotoCount?: number;
+}
+
+export interface AlbumsByTitle {
+  [title: string]: number;
+}
+
+export interface CompositeAlbumMap {
+  [id: string]: CompositeAlbum;
+}
+
+

@@ -58,102 +58,6 @@ const LaunchRequestHandler = {
   },
 };
 
-const AlbumHandler = {
-  canHandle(handlerInput) {
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'AlbumIntent';
-  },
-  handle(handlerInput) {
-    const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
-    const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
-
-    const itemName = getSlotItemName(handlerInput.requestEnvelope.request.intent.slots.Item);
-
-    console.log('AlbumHandler');
-    console.log(handlerInput);
-    console.log(handlerInput.requestEnvelope);
-    console.log(handlerInput.requestEnvelope.request);
-    console.log(handlerInput.requestEnvelope.request.intent);
-    console.log(handlerInput.requestEnvelope.request.intent.slots);
-    console.log(handlerInput.requestEnvelope.request.intent.slots.Item);
-
-    const cardTitle = requestAttributes.t('DISPLAY_CARD_TITLE', requestAttributes.t('SKILL_NAME'), itemName);
-    let speakOutput = "";
-
-    if (brightSignInterface.getAccessToken() === '' && !brightSignInterface.noBsMode) {
-      console.log('no accessToken in albumHandler');
-      speakOutput = requestAttributes.t('NO_ACCESS_TOKEN');
-      const repromptSpeech = requestAttributes.t('NO_ACCESS_TOKEN_REPROMPT');
-      speakOutput += repromptSpeech;
-
-      sessionAttributes.speakOutput = speakOutput; //saving speakOutput to attributes, so we can use it to repeat
-      sessionAttributes.repromptSpeech = repromptSpeech;
-
-      handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
-
-      return handlerInput.responseBuilder
-        .speak(sessionAttributes.speakOutput)
-        // .reprompt(sessionAttributes.repromptSpeech)
-        .getResponse();
-    }
-    else if (itemName !== '') {
-      console.log('proceed in albumHandler');
-      sessionAttributes.speakOutput = itemName;
-      handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
-
-      brightSignInterface.sendPlayAlbum(itemName);
-
-      return handlerInput.responseBuilder
-        .speak(sessionAttributes.speakOutput) // .reprompt(sessionAttributes.repromptSpeech)
-        .withSimpleCard(cardTitle, itemName)
-        .withShouldEndSession(false)
-        .getResponse();
-    }
-    else {
-      const utterance = getSlotItemUtterance(handlerInput.requestEnvelope.request.intent.slots.Item);
-
-      speakOutput = requestAttributes.t('ALBUM_NOT_FOUND_MESSAGE');
-      const repromptSpeech = requestAttributes.t('ALBUM_NOT_FOUND_REPROMPT');
-      speakOutput += requestAttributes.t('ALBUM_NOT_FOUND_WITH_ITEM_NAME', utterance);
-      speakOutput += repromptSpeech;
-
-      sessionAttributes.speakOutput = speakOutput; //saving speakOutput to attributes, so we can use it to repeat
-      sessionAttributes.repromptSpeech = repromptSpeech;
-
-      handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
-
-      return handlerInput.responseBuilder
-        .speak(sessionAttributes.speakOutput)
-        // .reprompt(sessionAttributes.repromptSpeech)
-        .getResponse();
-    }
-  }
-};
-
-function getSlotItemName(itemSlot) {
-  let itemName = '';
-  if (itemSlot && itemSlot.value) {
-    const resolutions = itemSlot.resolutions;
-    if (resolutions && resolutions.resolutionsPerAuthority) {
-      resolutions.resolutionsPerAuthority.forEach((authorityData) => {
-        if (authorityData && authorityData.status && authorityData.status.code &&
-          authorityData.status.code === 'ER_SUCCESS_MATCH') {
-          itemName = itemSlot.value;
-          return;
-        }
-      })
-    }
-  }
-  return itemName;
-}
-
-function getSlotItemUtterance(itemSlot) {
-  if (itemSlot && itemSlot.value) {
-    return itemSlot.value;
-  }
-  return '';
-}
-
 const StopHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest'
@@ -343,39 +247,63 @@ const SearchHandler = {
       && (handlerInput.requestEnvelope.request.intent.name === 'SearchIntent');
   },
   handle(handlerInput) {
+
     const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
-
-    console.log('SearchHandler');
-    console.log(requestAttributes);
-    console.log(handlerInput);
-    console.log(handlerInput.requestEnvelope);
-    console.log(handlerInput.requestEnvelope.request);
-    console.log(handlerInput.requestEnvelope.request.intent);
-    console.log(handlerInput.requestEnvelope.request.intent.slots);
-    console.log(handlerInput.requestEnvelope.request.intent.slots.Item);
-
+    const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+    
     const slots = handlerInput.requestEnvelope.request.intent.slots;
+    const albumName = slots.Query.value;
 
-    console.log('slots:');
-    console.log(slots);
-    console.log('slots keys:');
-    console.log(Object.keys(slots));
-    console.log('Query:');
-    console.log(slots.Query);
-    console.log('Query value: ');
-    console.log(slots.Query.value);
+    console.log('query value:');
+    console.log(albumName);
 
-    var speakOutput = 'Search Handler invoked, query not recognized';
+    const cardTitle = requestAttributes.t('DISPLAY_CARD_TITLE', requestAttributes.t('SKILL_NAME'), albumName);
 
-    const queryValue = slots.Query.value;
-    if (queryValue && queryValue !== '') {
-      speakOutput = 'Search handler invoked, query item is ' + queryValue;
+    if (brightSignInterface.getAccessToken() === '' && !brightSignInterface.noBsMode) {
+      console.log('no accessToken in albumHandler');
+      sessionAttributes.speakOutput = requestAttributes.t('NO_ACCESS_TOKEN');
+      sessionAttributes.repromptSpeech = requestAttributes.t('NO_ACCESS_TOKEN_REPROMPT');
+      sessionAttributes.speakOutput += repromptSpeech;
+
+      handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
+
+      return handlerInput.responseBuilder
+        .speak(sessionAttributes.speakOutput)
+        // .reprompt(sessionAttributes.repromptSpeech)
+        .getResponse();
     }
+    else if (albumName !== '') {
+      console.log('proceed in albumHandler');
+      sessionAttributes.speakOutput = 'Play album ' + albumName;
+      handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
 
-    return handlerInput.responseBuilder
-      .speak(speakOutput)
-      .withShouldEndSession(false)
-      .getResponse();
+      brightSignInterface.sendPlayAlbum(albumName);
+
+      return handlerInput.responseBuilder
+        .speak(sessionAttributes.speakOutput) // .reprompt(sessionAttributes.repromptSpeech)
+        .withSimpleCard(cardTitle, albumName)
+        .withShouldEndSession(false)
+        .getResponse();
+    }
+    // albumNotFound will come from BrightSign, or compare against albumsData (or equivalent)
+    // else {
+    //   const utterance = getSlotItemUtterance(handlerInput.requestEnvelope.request.intent.slots.Item);
+
+    //   speakOutput = requestAttributes.t('ALBUM_NOT_FOUND_MESSAGE');
+    //   const repromptSpeech = requestAttributes.t('ALBUM_NOT_FOUND_REPROMPT');
+    //   speakOutput += requestAttributes.t('ALBUM_NOT_FOUND_WITH_ITEM_NAME', utterance);
+    //   speakOutput += repromptSpeech;
+
+    //   sessionAttributes.speakOutput = speakOutput; //saving speakOutput to attributes, so we can use it to repeat
+    //   sessionAttributes.repromptSpeech = repromptSpeech;
+
+    //   handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
+
+    //   return handlerInput.responseBuilder
+    //     .speak(sessionAttributes.speakOutput)
+    //     // .reprompt(sessionAttributes.repromptSpeech)
+    //     .getResponse();
+    // }
   },
 };
 
@@ -457,7 +385,6 @@ const LocalizationInterceptor = {
 exports.handler = skillBuilder
   .addRequestHandlers(
     LaunchRequestHandler,
-    AlbumHandler,
     StopHandler,
     ResumeHandler,
     RewindHandler,

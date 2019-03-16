@@ -20,8 +20,10 @@ interface CompositeAlbum {
   id: string;
   googleTitle: string;
   googlePhotoCount: number;
+  inDb: boolean;
   dbTitle: string;
   dbPhotoCount: number;
+  onHd: boolean;
   hdTitle?: string;
   hdPhotoCount?: number;
 }
@@ -33,6 +35,8 @@ interface AlbumsByTitle {
 interface CompositeAlbumMap {
   [id: string]: CompositeAlbum;
 }
+
+const compositeAlbumsById: CompositeAlbumMap = {};
 
 export function showAlbumsStatus(request: Request, response: Response) {
 
@@ -46,24 +50,26 @@ export function showAlbumsStatus(request: Request, response: Response) {
     const googleAlbums: GoogleAlbum[] = albumStatusResults[0];
     const dbAlbums: DbAlbum[] = albumStatusResults[1];
 
-    const albumsById: CompositeAlbumMap = {};
     googleAlbums.forEach((googleAlbum: GoogleAlbum) => {
       const allAlbum: CompositeAlbum = {
         id: googleAlbum.googleAlbumId,
         googleTitle: googleAlbum.title,
         googlePhotoCount: googleAlbum.mediaItemsCount,
+        inDb: false,
         dbTitle: '',
         dbPhotoCount: 0,
+        onHd: false,
       };
-      albumsById[googleAlbum.googleAlbumId] = allAlbum;
+      compositeAlbumsById[googleAlbum.googleAlbumId] = allAlbum;
     });
 
     dbAlbums.forEach((dbAlbum: DbAlbum) => {
-      if (albumsById.hasOwnProperty(dbAlbum.googleId)) {
-        const compositeAlbum: CompositeAlbum = albumsById[dbAlbum.googleId];
+      if (compositeAlbumsById.hasOwnProperty(dbAlbum.googleId)) {
+        const compositeAlbum: CompositeAlbum = compositeAlbumsById[dbAlbum.googleId];
+        compositeAlbum.inDb = true;
         compositeAlbum.dbTitle = dbAlbum.title;
         compositeAlbum.dbPhotoCount = dbAlbum.mediaItemIds.length;
-        albumsById[dbAlbum.googleId] = compositeAlbum;
+        compositeAlbumsById[dbAlbum.googleId] = compositeAlbum;
       }
       else {
         console.log('No matching google album for dbAlbum: ', dbAlbum.title);
@@ -73,13 +79,14 @@ export function showAlbumsStatus(request: Request, response: Response) {
     const hdAlbumsByTitle: AlbumsByTitle = getAlbumsListFromManifest();
 
     const allAlbums: CompositeAlbum[] = [];
-    for (const albumId in albumsById) {
-      if (albumsById.hasOwnProperty(albumId)) {
-        const compositeAlbum = albumsById[albumId];
+    for (const albumId in compositeAlbumsById) {
+      if (compositeAlbumsById.hasOwnProperty(albumId)) {
+        const compositeAlbum = compositeAlbumsById[albumId];
 
         const compositeAlbumName = compositeAlbum.googleTitle;
         if (hdAlbumsByTitle.hasOwnProperty(compositeAlbumName)) {
           const hdAlbumCount: number = hdAlbumsByTitle[compositeAlbumName];
+          compositeAlbum.onHd = true;
           compositeAlbum.hdPhotoCount = hdAlbumCount;
         }
         allAlbums.push(compositeAlbum);
@@ -121,6 +128,18 @@ export function downloadNewAlbums(request: Request, response: Response) {
 
 export function synchronizeAlbumNames(request: Request, response: Response) {
   console.log('synchronizeAlbumNames invoked');
+
+  Object.keys(compositeAlbumsById).forEach((compositeAlbumId: string) => {
+    const compositeAlbum: CompositeAlbum = compositeAlbumsById[compositeAlbumId];
+    const { id, googleTitle, dbTitle } = compositeAlbum;
+    if (compositeAlbum.inDb) {
+      if (googleTitle !== dbTitle) {
+        Album.update({ id }, { $set: { title: googleTitle } }, () => {
+          console.log('rename ', dbTitle, ' to ', googleTitle);
+        });
+      }  
+    }
+  });
 }
 
 export function regenerateManifest(request: Request, response: Response) {

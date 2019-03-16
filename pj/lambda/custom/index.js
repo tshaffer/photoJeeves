@@ -13,9 +13,19 @@ const dwsManager = require('@brightsign/bs-dws-manager');
 const getDwsConnector = dwsManager.getDwsConnector;
 
 const albumsData = require('./photoJeevesAlbums.json');
-const albumNames = albumsData.ALBUM_SPECS.map( (albumData) => {
-  return albumData.title;
+// const albumNames = albumsData.ALBUM_SPECS.map((albumData) => {
+//   return albumData.title;
+// });
+const albumNames = [];
+const albumNamesLowerCase = [];
+albumsData.ALBUM_SPECS.forEach( (albumData) => {
+  albumNames.push(albumData.title);
+  albumNamesLowerCase.push(albumData.title.toLowerCase());
 })
+console.log('Album names list:');
+console.log(albumNames);
+console.log('Album names lower case:');
+console.log(albumNamesLowerCase);
 
 const brightSignInterface = require('./brightSignInterface');
 
@@ -250,7 +260,7 @@ const SearchHandler = {
 
     const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
     const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
-    
+
     const slots = handlerInput.requestEnvelope.request.intent.slots;
     const albumName = slots.Query.value;
 
@@ -272,39 +282,42 @@ const SearchHandler = {
         // .reprompt(sessionAttributes.repromptSpeech)
         .getResponse();
     }
-    else if (albumName !== '') {
+    else {
+      // check to see if albumName is in albumNames
       console.log('proceed in albumHandler');
-      sessionAttributes.speakOutput = 'Play album ' + albumName;
-      handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
+      console.log('validate album name');
 
-      brightSignInterface.sendPlayAlbum(albumName);
+      if (albumNamesLowerCase.indexOf(albumName.toLowerCase()) >= 0) {
+        sessionAttributes.speakOutput = 'Play album ' + albumName;
+        handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
 
-      return handlerInput.responseBuilder
-        .speak(sessionAttributes.speakOutput) // .reprompt(sessionAttributes.repromptSpeech)
-        .withSimpleCard(cardTitle, albumName)
-        .withShouldEndSession(false)
-        .getResponse();
+        brightSignInterface.sendPlayAlbum(albumName);
+
+        return handlerInput.responseBuilder
+          .speak(sessionAttributes.speakOutput) // .reprompt(sessionAttributes.repromptSpeech)
+          .withSimpleCard(cardTitle, albumName)
+          .withShouldEndSession(false)
+          .getResponse();
+      }
+      else {
+        speakOutput = requestAttributes.t('ALBUM_NOT_FOUND_MESSAGE');
+        const repromptSpeech = requestAttributes.t('ALBUM_NOT_FOUND_REPROMPT');
+        speakOutput += requestAttributes.t('ALBUM_NOT_FOUND_WITH_ITEM_NAME', albumName);
+        speakOutput += repromptSpeech;
+
+        sessionAttributes.speakOutput = speakOutput; //saving speakOutput to attributes, so we can use it to repeat
+        sessionAttributes.repromptSpeech = repromptSpeech;
+
+        handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
+
+        return handlerInput.responseBuilder
+          .speak(sessionAttributes.speakOutput)
+          .withShouldEndSession(false)
+          // .reprompt(sessionAttributes.repromptSpeech)
+          .getResponse();
+      }
     }
-    // albumNotFound will come from BrightSign, or compare against albumsData (or equivalent)
-    // else {
-    //   const utterance = getSlotItemUtterance(handlerInput.requestEnvelope.request.intent.slots.Item);
-
-    //   speakOutput = requestAttributes.t('ALBUM_NOT_FOUND_MESSAGE');
-    //   const repromptSpeech = requestAttributes.t('ALBUM_NOT_FOUND_REPROMPT');
-    //   speakOutput += requestAttributes.t('ALBUM_NOT_FOUND_WITH_ITEM_NAME', utterance);
-    //   speakOutput += repromptSpeech;
-
-    //   sessionAttributes.speakOutput = speakOutput; //saving speakOutput to attributes, so we can use it to repeat
-    //   sessionAttributes.repromptSpeech = repromptSpeech;
-
-    //   handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
-
-    //   return handlerInput.responseBuilder
-    //     .speak(sessionAttributes.speakOutput)
-    //     // .reprompt(sessionAttributes.repromptSpeech)
-    //     .getResponse();
-    // }
-  },
+  }
 };
 
 const SessionEndedRequestHandler = {

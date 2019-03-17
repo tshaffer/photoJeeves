@@ -78,6 +78,7 @@ export interface GoogleMediaItem {
 
 export interface CompositeAlbum {
   id: string;
+  googleAlbum: GoogleAlbum;
   googleTitle: string;
   googlePhotoCount: number;
   inDb: boolean;

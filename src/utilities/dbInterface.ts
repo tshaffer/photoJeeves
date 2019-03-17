@@ -38,4 +38,15 @@ export function getAllMediaItems(): Promise<Document[]> {
   return query.exec();
 }
 
+export function insertAlbums(albums: DbAlbum[]): Promise<Document[]> {
+  const albumsToInsert: any[] = [];
+  albums.forEach( (dbAlbum: DbAlbum) => {
+    albumsToInsert.push( {
+      id: dbAlbum.googleId,
+      title: dbAlbum.title,
+      mediaItemIds: dbAlbum.mediaItemIds,
+    });
+  });
+  return Album.insertMany(albumsToInsert);
+}
 

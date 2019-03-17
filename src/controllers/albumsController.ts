@@ -42,6 +42,7 @@ export function showAlbumsStatus(request: Request, response: Response) {
 
     googleAlbums.forEach((googleAlbum: GoogleAlbum) => {
       const allAlbum: CompositeAlbum = {
+        googleAlbum,
         id: googleAlbum.googleAlbumId,
         googleTitle: googleAlbum.title,
         googlePhotoCount: googleAlbum.mediaItemsCount,

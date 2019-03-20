@@ -1,5 +1,8 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { Request, Response } from 'express';
 import { Query, Document } from 'mongoose';
+import axios from 'axios';
 import { getAccessToken } from './oauth2Controller';
 import { isNil } from 'lodash';
 import { CompositeAlbumMap, CompositeAlbum, DbMediaItem, GoogleAlbum, DbAlbum } from '../types';
@@ -11,6 +14,7 @@ import {
 import {
   getGoogleAlbums, fetchAlbumContents, getAllMediaItemIds, getAlbumContents, downloadMediaItemsMetadata,
 } from '../utilities/googleInterface';
+import { isObject, isString } from 'util';
 
 function addGoogleAlbumsToDb(compositeAlbums: CompositeAlbum[]): Promise<Document[]> {
   const dbAlbumsToInsert: DbAlbum[] = [];
@@ -48,34 +52,16 @@ function fetchNewAlbumsContents(accessToken: string, compositeAlbumsToDownload: 
   return processFetchAlbumContents(0);
 }
 
-export function downloadNewAlbums(request: Request, response: Response) {
+export function downloadNewAlbums(request: Request, response: Response): Promise<any> {
   response.render('downloadNewAlbums');
-  getAlbumMediaItemIds().then((mediaItemIdsInAlbums: string[]) => {
-    console.log('return from getAlbumMediaItemIds: ', mediaItemIdsInAlbums);
-
-    // mediaItemIdsInAlbums
-    //    all mediaItemIds in all albums
-    //    next steps
-    //      get all mediaItems in the db
-    //        id, downloaded
+  return getAlbumMediaItemIds().then((mediaItemIdsInAlbums: string[]) => {
     return getAllMediaItemsInDb()
       .then((allMediaItems: Document[]) => {
         console.log('return from getAllMediaItems: ', allMediaItems);
-        /*
-          each mediaItem contains
-            id
-            downloaded
-        */
         const mediaItemsInDbById: Map<string, any> = new Map();
         allMediaItems.forEach((mediaItem: any) => {
           mediaItemsInDbById.set(mediaItem.id, mediaItem);
         });
-
-        // mediaItemsInDbById
-        //   all mediaItems in the db with an indication of whether or not they've been downloaded
-        // next step
-        //   iterate through mediaItemIdsInAlbums. Check to see if mediaItem is in db; if yes, whether
-        //   or not its been downloaded
 
         const albumMediaItemsInDbToDownload: Map<string, any> = new Map();
         const albumMediaItemIdsNotInDb: string[] = [];
@@ -95,49 +81,15 @@ export function downloadNewAlbums(request: Request, response: Response) {
         console.log(albumMediaItemsInDbToDownload);
         console.log(albumMediaItemIdsNotInDb);
 
-        // albumMediaItemsInDbToDownload - media items already in the db
-        //    download each one, then set its downloaded property to true
-        // albumMediaItemIdsNotInDb - media items not in db
-        //    download each one, then add it to the db.
-        //    for each one
-        //      get google record
-        //      download actual photo based on what's in record
-        //      or, maybe we already have the information?
-        // GET https://photoslibrary.googleapis.com/v1/mediaItems:batchGet?mediaItemIds=MEDIA_ITEM_ID&mediaItemIds=ANOTHER_MEDIA_ITEM_ID&mediaItemIds=INCORRECT_MEDIA_ITEM_ID
-        // Content-type: application/json
-        // Authorization: Bearer OAUTH2_TOKEN
-        // Base URL is the one I want.
-        // code that actually downloads the mediaItem
-        //    sinker: mediaItemsDownloadController#downloadMediaItem
+        return downloadMediaItemsMetadata(albumMediaItemIdsNotInDb);
 
-        downloadMediaItemsMetadata(albumMediaItemIdsNotInDb).then( (results: any[]) => {
-          console.log(results);
-          debugger;
-          /*
-            results[0].mediaItem
-              baseUrl
-              filename
-              id
-              mediaMetadata
-                creationTime
-                height
-                width
-                photo
-                  apertureFNumber
-                  cameraMake
-                  cameraModel
-                  focalLength
-                  isoEquivalent
-              mimeType
-              productUrl
-            results[69].status
-              code
-              message
-          */
-        });
+      }).then((missingMediaItemResults: any[]) => {
+        console.log(missingMediaItemResults);
+        return downloadMediaItems(missingMediaItemResults);
       });
   });
 }
+
 // algorithm
 // starting point
 //    compositeAlbumsById
@@ -288,3 +240,162 @@ function buildAllDbMediaItemsById(dbMediaItems: Document[]): Map<string, DbMedia
   return dbMediaItemsByMediaItemId;
 }
 
+/*
+  results[0].mediaItem
+    baseUrl
+    filename
+    id
+    mediaMetadata
+      creationTime
+      height
+      width
+      photo
+        apertureFNumber
+        cameraMake
+        cameraModel
+        focalLength
+        isoEquivalent
+    mimeType
+    productUrl
+  results[69].status
+    code
+    message
+*/
+
+function downloadMediaItems(missingMediaItemResults: any[]): Promise<void> {
+
+  const mediaItemsToRetrieve: any[] = [];
+
+  missingMediaItemResults.forEach((missingMediaItemResult: any) => {
+    if (isObject(missingMediaItemResult.mediaItem)) {
+      mediaItemsToRetrieve.push(missingMediaItemResult.mediaItem);
+    }
+  });
+
+  console.log('retrieve the following media items');
+  console.log(mediaItemsToRetrieve);
+
+  const processFetchMediaItem = (index: number): Promise<void> => {
+
+    if (index >= mediaItemsToRetrieve.length) {
+      return Promise.resolve();
+    }
+
+    const mediaItem: any = mediaItemsToRetrieve[index];
+
+    const id = mediaItem.id;
+    let baseUrl = mediaItem.baseUrl;
+    console.log('baseUrl: ');
+    console.log(baseUrl);
+
+    if (isObject(mediaItem.mediaMetadata)) {
+      const mediaMetadata = mediaItem.mediaMetadata;
+      const { width, height } = mediaMetadata;
+      if (isString(width) && isString(height)) {
+        baseUrl += '=w' + width + '-h' + height;
+        console.log('baseUrl with dimensions:');
+        console.log(baseUrl);
+      }
+    }
+
+    // TODO - check mimeType
+    const fileName = mediaItem.id + '.jpg';
+    console.log('filename');
+    console.log(fileName);
+
+    const baseDir = '/Users/tedshaffer/Documents/Projects/photoJeeves/tmp';
+    const filePath = path.join(baseDir, fileName);
+
+    const writer = fs.createWriteStream(filePath);
+
+    axios({
+      method: 'get',
+      url: baseUrl,
+      responseType: 'stream',
+    }).then((response: any) => {
+      response.data.pipe(writer);
+      // writer.on('finish', Promise.resolve);
+      // writer.on('error', Promise.reject);
+      writer.on('finish', () => {
+        return Promise.resolve();
+      });
+      writer.on('error', () => {
+        return Promise.reject();
+      });
+      processFetchMediaItem(index + 1);
+    }).catch((err: Error) => {
+      console.log('mediaItem file get/write failed for id:');
+      console.log(id);
+      debugger;
+    });
+  };
+
+  return processFetchMediaItem(0);
+}
+// function downloadMediaItem(mediaItem) {
+
+//   return new Promise((resolve, reject) => {
+
+//       var id = mediaItem.id;
+
+//       const apiEndpoint = 'https://photoslibrary.googleapis.com';
+//       var getMediaItemEndpoint = apiEndpoint + '/v1/mediaItems/' + id;
+//       console.log('mediaItems endpoint:');
+//       console.log(getMediaItemEndpoint);
+
+//       var access_token = oauth2Controller.getAccessToken();
+
+//       requestPromise.get(getMediaItemEndpoint, {
+//           headers: { 'Content-Type': 'application/json' },
+//           json: true,
+//           auth: { 'bearer': access_token },
+//       }).then((result) => {
+
+//           const populatedMediaItem = result;
+//           var baseUrl = populatedMediaItem.baseUrl;
+//           console.log('baseUrl: ');
+//           console.log(baseUrl);
+
+//           if (typeof populatedMediaItem.mediaMetadata === 'object') {
+//               var mediaMetadata = populatedMediaItem.mediaMetadata;
+//               if (typeof mediaMetadata.width === 'string' && typeof mediaMetadata.height === 'string') {
+//                   width = mediaMetadata.width;
+//                   height = mediaMetadata.height;
+//                   baseUrl = baseUrl + '=w' + width + '-h' + height;
+//                   console.log('baseUrl with dimensions:');
+//                   console.log(baseUrl);
+//               }
+//           }
+
+//           // populatedMediaItem.mediaMetadata.width, height
+
+//           // TODO - can't really do this - some are movies
+//           var fileName = mediaItem.id + '.jpg';
+//           console.log('filename');
+//           console.log(fileName);
+
+//           const filePath = path.join(baseDir, fileName);
+
+//           const writer = fs.createWriteStream(filePath)
+
+//           axios({
+//               method: 'get',
+//               url: baseUrl,
+//               responseType: 'stream'
+//           }).then((response) => {
+//               response.data.pipe(writer);
+//               writer.on('finish', resolve)
+//               writer.on('error', reject)
+//           }).catch((err) => {
+//             console.log('mediaItem file get/write failed for id:');
+//             console.log(id);
+//             debugger;
+//           });
+//       }).catch((err) => {
+//         console.log('mediaItems fetched failed for id:');
+//         console.log(id);
+//         console.log(err);
+//         debugger;
+//       });
+//   });
+// }

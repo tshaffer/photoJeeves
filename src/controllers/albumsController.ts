@@ -12,7 +12,7 @@ import {
   getGoogleAlbums, fetchAlbumContents, getAllMediaItemIds,
 } from '../utilities/googleInterface';
 import {
-  getDbAlbums, getAllMediaItems as getAllDbMediaItems,
+  getDbAlbums, getAllMediaItemsInDb as getAllDbMediaItems,
 } from '../utilities/dbInterface';
 
 import {

@@ -5,16 +5,16 @@ import { isNil } from 'lodash';
 import { CompositeAlbumMap, CompositeAlbum, DbMediaItem, GoogleAlbum, DbAlbum } from '../types';
 import { getCompositeAlbumsById } from './albumsController';
 import {
-  getDbAlbums, getAllMediaItems as getAllDbMediaItems, insertAlbums as addDbAlbumsToDb,
+  getDbAlbums, getAllMediaItemsInDb as getAllDbMediaItems, insertAlbums as addDbAlbumsToDb, getAlbumMediaItemIds, getAllMediaItemsInDb,
 } from '../utilities/dbInterface';
 
 import {
-  getGoogleAlbums, fetchAlbumContents, getAllMediaItemIds, getAlbumContents,
+  getGoogleAlbums, fetchAlbumContents, getAllMediaItemIds, getAlbumContents, downloadMediaItemsMetadata,
 } from '../utilities/googleInterface';
 
 function addGoogleAlbumsToDb(compositeAlbums: CompositeAlbum[]): Promise<Document[]> {
   const dbAlbumsToInsert: DbAlbum[] = [];
-  compositeAlbums.forEach( (compositeAlbum: CompositeAlbum) => {
+  compositeAlbums.forEach((compositeAlbum: CompositeAlbum) => {
     const dbAlbum: DbAlbum = {
       googleId: compositeAlbum.googleAlbum.googleAlbumId,
       title: compositeAlbum.googleAlbum.title,
@@ -26,7 +26,7 @@ function addGoogleAlbumsToDb(compositeAlbums: CompositeAlbum[]): Promise<Documen
 }
 
 function fetchNewAlbumsContents(accessToken: string, compositeAlbumsToDownload: CompositeAlbum[]): Promise<void> {
-  
+
   const processFetchAlbumContents = (index: number): Promise<void> => {
 
     console.log('fetchNewAlbumsContents for index: ', index);
@@ -38,7 +38,7 @@ function fetchNewAlbumsContents(accessToken: string, compositeAlbumsToDownload: 
     const compositeAlbum: CompositeAlbum = compositeAlbumsToDownload[index];
     const albumId = compositeAlbum.id;
     return getAlbumContents(accessToken, albumId)
-      .then( (mediaItemIds: string[]) => {
+      .then((mediaItemIds: string[]) => {
 
         compositeAlbum.googleAlbum.mediaItemIds = mediaItemIds;
 
@@ -48,6 +48,96 @@ function fetchNewAlbumsContents(accessToken: string, compositeAlbumsToDownload: 
   return processFetchAlbumContents(0);
 }
 
+export function downloadNewAlbums(request: Request, response: Response) {
+  response.render('downloadNewAlbums');
+  getAlbumMediaItemIds().then((mediaItemIdsInAlbums: string[]) => {
+    console.log('return from getAlbumMediaItemIds: ', mediaItemIdsInAlbums);
+
+    // mediaItemIdsInAlbums
+    //    all mediaItemIds in all albums
+    //    next steps
+    //      get all mediaItems in the db
+    //        id, downloaded
+    return getAllMediaItemsInDb()
+      .then((allMediaItems: Document[]) => {
+        console.log('return from getAllMediaItems: ', allMediaItems);
+        /*
+          each mediaItem contains
+            id
+            downloaded
+        */
+        const mediaItemsInDbById: Map<string, any> = new Map();
+        allMediaItems.forEach((mediaItem: any) => {
+          mediaItemsInDbById.set(mediaItem.id, mediaItem);
+        });
+
+        // mediaItemsInDbById
+        //   all mediaItems in the db with an indication of whether or not they've been downloaded
+        // next step
+        //   iterate through mediaItemIdsInAlbums. Check to see if mediaItem is in db; if yes, whether
+        //   or not its been downloaded
+
+        const albumMediaItemsInDbToDownload: Map<string, any> = new Map();
+        const albumMediaItemIdsNotInDb: string[] = [];
+
+        mediaItemIdsInAlbums.forEach((mediaItemIdInAlbum) => {
+          const matchingMediaItem: any = mediaItemsInDbById.get(mediaItemIdInAlbum);
+          if (isNil(matchingMediaItem)) {
+            albumMediaItemIdsNotInDb.push(mediaItemIdInAlbum);
+          }
+          else {
+            if (!matchingMediaItem.downloaded) {
+              // mediaItem exists in db; add to map
+              albumMediaItemsInDbToDownload.set(mediaItemIdInAlbum, matchingMediaItem);
+            }
+          }
+        });
+        console.log(albumMediaItemsInDbToDownload);
+        console.log(albumMediaItemIdsNotInDb);
+
+        // albumMediaItemsInDbToDownload - media items already in the db
+        //    download each one, then set its downloaded property to true
+        // albumMediaItemIdsNotInDb - media items not in db
+        //    download each one, then add it to the db.
+        //    for each one
+        //      get google record
+        //      download actual photo based on what's in record
+        //      or, maybe we already have the information?
+        // GET https://photoslibrary.googleapis.com/v1/mediaItems:batchGet?mediaItemIds=MEDIA_ITEM_ID&mediaItemIds=ANOTHER_MEDIA_ITEM_ID&mediaItemIds=INCORRECT_MEDIA_ITEM_ID
+        // Content-type: application/json
+        // Authorization: Bearer OAUTH2_TOKEN
+        // Base URL is the one I want.
+        // code that actually downloads the mediaItem
+        //    sinker: mediaItemsDownloadController#downloadMediaItem
+
+        downloadMediaItemsMetadata(albumMediaItemIdsNotInDb).then( (results: any[]) => {
+          console.log(results);
+          debugger;
+          /*
+            results[0].mediaItem
+              baseUrl
+              filename
+              id
+              mediaMetadata
+                creationTime
+                height
+                width
+                photo
+                  apertureFNumber
+                  cameraMake
+                  cameraModel
+                  focalLength
+                  isoEquivalent
+              mimeType
+              productUrl
+            results[69].status
+              code
+              message
+          */
+        });
+      });
+  });
+}
 // algorithm
 // starting point
 //    compositeAlbumsById
@@ -61,7 +151,7 @@ function fetchNewAlbumsContents(accessToken: string, compositeAlbumsToDownload: 
 //    generate list of mediaItemIds in albums getting downloaded
 //    determine which ones need to be downloaded
 //    add to db and download
-export function downloadNewAlbums(request: Request, response: Response) {
+export function olddownloadNewAlbums(request: Request, response: Response) {
 
   console.log('downloadNewAlbums invoked');
 
@@ -88,12 +178,12 @@ export function downloadNewAlbums(request: Request, response: Response) {
   //     get mediaItemIds for each compositeAlbumToDownload
   //     add to compositeAlbumToDownload
   return fetchNewAlbumsContents(accessToken, compositeAlbumsToDownload)
-    .then( () => {
+    .then(() => {
       debugger;
       // Step 3
       //   add albums to db
       return addGoogleAlbumsToDb(compositeAlbumsToDownload)
-    }).then( () => {
+    }).then(() => {
       debugger;
     });
 

@@ -13,7 +13,7 @@ let accessToken = '';
 const oauth2Client = new google.auth.OAuth2(
   clientId,
   clientSecret,
-  authCallbackUri
+  authCallbackUri,
 );
 
 export function getAccessToken(): string {
@@ -24,7 +24,7 @@ export function getCode(request: Request, response: Response) {
   console.log('invoke oauth2Client.generateAuthUrl');
   const oauth2Url = oauth2Client.generateAuthUrl({
     access_type: 'online',
-    scope: scope
+    scope: scope,
   });
   console.log('oauth2Url:');
   console.log(oauth2Url);  

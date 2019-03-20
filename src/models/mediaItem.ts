@@ -30,7 +30,7 @@ const MediaItemSchema = new Schema(
     creationTime: { type: Date },
     width: { type: Number },
     height: { type: Number },
-  }
+  },
 );
 
 

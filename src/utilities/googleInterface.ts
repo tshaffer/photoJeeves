@@ -85,13 +85,61 @@ export function getAlbumContents(accessToken: string, albumId: string): Promise<
         return Promise.resolve(mediaItemsIds);
       }
       return processFetchAlbumContents(result.nextPageToken);
-    }).catch( (error: Error) => {
+    }).catch((error: Error) => {
       debugger;
       return Promise.reject();
     });
   };
 
   return processFetchAlbumContents('');
+}
+
+export function downloadMediaItemsMetadata(mediaItemIds: string[]): Promise<any[]> {
+
+  let allResults: any[] = [];
+
+  const maxMediaItemsToFetch = 8;
+
+  const apiEndpoint = 'https://photoslibrary.googleapis.com/v1/mediaItems:batchGet?';
+
+  const processFetchMediaItemMetadataBatch = (index: number): any => {
+
+    const numRemainingMediaItems = mediaItemIds.length - index;
+    if (numRemainingMediaItems <= 0) {
+      return Promise.resolve(allResults);
+    }
+
+    let numMediaItemsToFetch = numRemainingMediaItems;
+    if (numMediaItemsToFetch > maxMediaItemsToFetch) {
+      numMediaItemsToFetch = maxMediaItemsToFetch;
+    }
+
+    let endpoint = apiEndpoint;
+
+    // tslint:disable-next-line: prefer-for-of
+    while (numMediaItemsToFetch > 0) {
+      const id = mediaItemIds[index];
+      endpoint = endpoint + 'mediaItemIds=' + id;
+      numMediaItemsToFetch -= 1;
+      if (numMediaItemsToFetch > 0) {
+        endpoint += '&';
+      }
+      index++;
+    }
+
+    const accessToken = oauth2Controller.getAccessToken();
+    return requestPromise.get(endpoint, {
+      headers: { 'Content-Type': 'application/json' },
+      json: true,
+      auth: { bearer: accessToken },
+    }).then((results) => {
+      allResults = allResults.concat(results.mediaItemResults);
+      return processFetchMediaItemMetadataBatch(index);
+    });
+  
+  };
+
+  return processFetchMediaItemMetadataBatch(0);
 }
 
 export function fetchAlbumContents(accessToken: string, albumIds: string[]): Promise<any> {

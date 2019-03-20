@@ -1,3 +1,5 @@
+import { union } from 'lodash';
+
 import Album from '../models/album';
 import MediaItem from '../models/mediaItem';
 
@@ -32,7 +34,18 @@ function getDbMediaItemIds(dbMediaItemIds: any[]): string[] {
   });
 }
 
-export function getAllMediaItems(): Promise<Document[]> {
+export function getAlbumMediaItemIds(): Promise<string[]> {
+  const query = Album.find({});
+  return query.exec().then((results: any) => {
+    const mediaItemIdsInAlbums: [any][any] = results.map( (result: any) => {
+      return getDbMediaItemIds(result.mediaItemIds);
+    });
+    const uniqueMediaItemIdsInAlbums: string[] = union(...mediaItemIdsInAlbums);
+    return Promise.resolve(uniqueMediaItemIdsInAlbums);
+  });
+}
+
+export function getAllMediaItemsInDb(): Promise<Document[]> {
   console.log('getAllMediaItems');
   const query = MediaItem.find({});
   return query.exec();
@@ -40,8 +53,8 @@ export function getAllMediaItems(): Promise<Document[]> {
 
 export function insertAlbums(albums: DbAlbum[]): Promise<Document[]> {
   const albumsToInsert: any[] = [];
-  albums.forEach( (dbAlbum: DbAlbum) => {
-    albumsToInsert.push( {
+  albums.forEach((dbAlbum: DbAlbum) => {
+    albumsToInsert.push({
       id: dbAlbum.googleId,
       title: dbAlbum.title,
       mediaItemIds: dbAlbum.mediaItemIds,

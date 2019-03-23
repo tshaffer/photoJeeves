@@ -156,8 +156,8 @@ function getGoogleMediaItems(): Promise<GoogleMediaItem[]> {
 
             return {
               baseUrl: downloadedMediaItem.baseUrl,
-              fileName: downloadedMediaItem.filename,
-              googleMediaItemId: downloadedMediaItem.id,
+              filename: downloadedMediaItem.filename,
+              id: downloadedMediaItem.id,
               mediaMetadata: {
                 creationTime: downloadedMediaItem.mediaMetadata.creationTime,
                 height: downloadedMediaItem.mediaMetadata.height,

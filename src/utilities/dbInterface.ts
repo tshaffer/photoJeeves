@@ -11,7 +11,8 @@ import {
   GoogleMediaItem,
   AlbumWithDifferences,
 } from '../types';
-import { Query, Document } from 'mongoose';
+import { Query, Document, Model, Schema } from 'mongoose';
+import { create } from 'domain';
 
 export function getDbAlbums(): Promise<DbAlbum[]> {
   console.log('begin: retrieve downloadedAlbums from mongoose');
@@ -63,3 +64,25 @@ export function insertAlbums(albums: DbAlbum[]): Promise<Document[]> {
   return Album.insertMany(albumsToInsert);
 }
 
+export function addMediaItemToDb(mediaItem: GoogleMediaItem): Promise<Document> {
+
+  const { baseUrl, filename, id, mediaMetadata, mimeType, productUrl } = mediaItem;
+
+  // TEDTODO - typing as MediaItem doesn't work - it can't find it?
+  // const newMediaItem: MediaItem = new MediaItem();
+  const dbSchemaMediaItem: any = new MediaItem();
+  dbSchemaMediaItem.id = id;
+  dbSchemaMediaItem.baseUrl = baseUrl;
+  dbSchemaMediaItem.fileName = filename;
+  dbSchemaMediaItem.downloaded = true;  // TEDTODO - do I want this set here, or as a parameter?
+  dbSchemaMediaItem.filePath = '';
+  dbSchemaMediaItem.productUrl = productUrl;
+  dbSchemaMediaItem.mimeType = mimeType;
+  dbSchemaMediaItem.creationTime = mediaMetadata.creationTime;
+  dbSchemaMediaItem.width = parseInt(mediaMetadata.width, 10);
+  dbSchemaMediaItem.height = parseInt(mediaMetadata.height, 10);
+
+  console.log('add db item with google id to db:');
+  console.log(id);
+  return dbSchemaMediaItem.save();
+}

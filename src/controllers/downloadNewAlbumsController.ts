@@ -54,6 +54,22 @@ function fetchNewAlbumsContents(accessToken: string, compositeAlbumsToDownload: 
   return processFetchAlbumContents(0);
 }
 
+/* algorithm
+  get all the mediaItemIds in all albums
+  get all mediaItems that are in the db
+  create a mapping from mediaItemId to mediaItem for all mediaItems in db
+  compare all the mediaItemIds in all the albums to the mediaItemIds in the db.
+  for each mediaItemId (in the albums), if there's not a corresponding media item in the db,
+    add the mediaItemId found in the album to the list of mediaItems
+    that need to be downloaded. (albumMediaItemIdsNotInDb). also, add mediaItems that are
+    found on the db but whose downloadedProperty is false (rare, if non existent at the moment)
+  invoke downloadMediaItemsMetadata to get the mediaItem metadata for all the mediaItems in an album but not in the db
+  invoke downloadMediaItems, supplying the mediaItem metadata retrieved in the last step.
+  WHAT'S MISSING HERE?
+  New albums are not retrieved. This function assumes that all new albums have been downloaded and added to the db, including
+  the media item ids associated with the albums.
+  What this function is really doing is downloading all media items from all albums that have not already been downloaded.
+*/
 export function downloadNewAlbums(request: Request, response: Response): Promise<any> {
   response.render('downloadNewAlbums');
   return getAlbumMediaItemIds().then((mediaItemIdsInAlbums: string[]) => {
@@ -105,6 +121,23 @@ export function downloadNewAlbums(request: Request, response: Response): Promise
 //    generate list of mediaItemIds in albums getting downloaded
 //    determine which ones need to be downloaded
 //    add to db and download
+
+/* algorithm
+  assumes existence of compositeAlbumsById
+    compositeAlbum
+      various information about an album, including its existence on google, in db, and on hd; also
+      its titles on each, and its photoCount
+    based on compositeAlbumsById, generate a list of albums to download (compositeAlbumsToDownload)
+    invoke fetchNewAlbumsContents to generate a list of mediaItemIds for each album that needs to be downloaded
+      fetchNewAlbumsContents invokes getAlbumContents
+    on conclusion of fetchNewAlbumsContents, the retrieved metadata for the new albums is added to the db.
+      addGoogleAlbumsToDb, addDbAlbumsToDb
+  summary
+    given the list of all albums
+    - determine a list of new albums to download
+    - get all the media item ids for those new albums
+    - add the new albums (including the media item ids) to the database
+*/
 export function olddownloadNewAlbums(request: Request, response: Response) {
 
   console.log('downloadNewAlbums invoked');
@@ -136,7 +169,7 @@ export function olddownloadNewAlbums(request: Request, response: Response) {
       debugger;
       // Step 3
       //   add albums to db
-      return addGoogleAlbumsToDb(compositeAlbumsToDownload)
+      return addGoogleAlbumsToDb(compositeAlbumsToDownload);
     }).then(() => {
       debugger;
     });
@@ -242,28 +275,6 @@ function buildAllDbMediaItemsById(dbMediaItems: Document[]): Map<string, DbMedia
   return dbMediaItemsByMediaItemId;
 }
 
-/*
-  results[0].mediaItem
-    baseUrl
-    filename
-    id
-    mediaMetadata
-      creationTime
-      height
-      width
-      photo
-        apertureFNumber
-        cameraMake
-        cameraModel
-        focalLength
-        isoEquivalent
-    mimeType
-    productUrl
-  results[69].status
-    code
-    message
-*/
-
 function downloadMediaItems(missingMediaItemResults: GoogleMediaItemDownloadResult[]): Promise<void> {
 
   const mediaItemsToRetrieve: GoogleMediaItem[] = [];
@@ -329,7 +340,6 @@ function downloadMediaItems(missingMediaItemResults: GoogleMediaItemDownloadResu
   return processFetchMediaItem(0);
 }
 
-    // TEDTODO - add item to db / update item in db
     // TEDTODO - deal with heif / heic files
 
 function getSuffixFromMimeType(mimeType: string): string {

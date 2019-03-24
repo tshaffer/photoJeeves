@@ -35,6 +35,7 @@ function getDbMediaItemIds(dbMediaItemIds: any[]): string[] {
   });
 }
 
+// returns an array of mediaItemIds that represents all the mediaItems in all the albums
 export function getAlbumMediaItemIds(): Promise<string[]> {
   const query = Album.find({});
   return query.exec().then((results: any) => {
@@ -46,6 +47,7 @@ export function getAlbumMediaItemIds(): Promise<string[]> {
   });
 }
 
+// returns all MediaItem objects in the db
 export function getAllMediaItemsInDb(): Promise<Document[]> {
   console.log('getAllMediaItems');
   const query = MediaItem.find({});

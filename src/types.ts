@@ -67,10 +67,37 @@ export interface MediaMetadata {
   photo?: PhotoMetadata;
 }
 
+// export interface GoogleMediaItemDownloadResult {
+//   type: GoogleMediaItemDownloadMediaItem | GoogleMediaItemDownloadFailureStatus;
+// }
+
+export type GoogleMediaItemDownloadResult = GoogleMediaItemDownloadMediaItem | GoogleMediaItemDownloadFailureStatus;
+
+export interface GoogleMediaItemDownloadMediaItem {
+  mediaItem: GoogleMediaItem;
+}
+export interface GoogleMediaItemDownloadFailureStatus {
+  status: object;
+}
+
+export interface GoogleMediaPhoto {
+  apertureFNumber: number;
+  cameraMake: string;
+  cameraModel: string;
+  focalLength: number;
+  isoEquivalent: number;
+}
+
+export interface GoogleMediaMetadata {
+  creationTime: string;
+  width: string;
+  height: string;
+  photo: GoogleMediaPhoto;
+}
 export interface GoogleMediaItem {
   baseUrl: string;
-  fileName: string; // filename when downloaded
-  googleMediaItemId: string;  // id when downloaded
+  filename: string;
+  id: string;
   mediaMetadata: any;
   mimeType: string;
   productUrl: string;

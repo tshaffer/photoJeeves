@@ -13,17 +13,22 @@ evtSource.onmessage = function(e) {
   console.log('message data: ');
   console.log(messageData);
 
-  var pLocalMediaCount  = document.getElementById('localMediaCount');
-  console.log(pLocalMediaCount)
-  pLocalMediaCount.innerHTML = 'Number of local media items: ' + messageData.downloadedMediaItemCount.toString();
+  if (messageData.homeStatus) {
+    var homeStatusP = document.getElementById('homeStatusP');
+    homeStatusP.innerHTML = messageData.homeStatus;
+  }
 
-  var pLocalAlbumCount  = document.getElementById('localAlbumCount');
-  console.log(pLocalAlbumCount)
-  pLocalAlbumCount.innerHTML = 'Number of local albums: ' + messageData.downloadedAlbumCount.toString();
+  // var pLocalMediaCount  = document.getElementById('localMediaCount');
+  // console.log(pLocalMediaCount)
+  // pLocalMediaCount.innerHTML = 'Number of local media items: ' + messageData.downloadedMediaItemCount.toString();
 
-  var pGoogleAlbumCount  = document.getElementById('googleAlbumCount');
-  console.log(pGoogleAlbumCount)
-  pGoogleAlbumCount.innerHTML = 'Number of google albums: ' + messageData.googleAlbumCount.toString();
+  // var pLocalAlbumCount  = document.getElementById('localAlbumCount');
+  // console.log(pLocalAlbumCount)
+  // pLocalAlbumCount.innerHTML = 'Number of local albums: ' + messageData.downloadedAlbumCount.toString();
+
+  // var pGoogleAlbumCount  = document.getElementById('googleAlbumCount');
+  // console.log(pGoogleAlbumCount)
+  // pGoogleAlbumCount.innerHTML = 'Number of google albums: ' + messageData.googleAlbumCount.toString();
 
 
 }

@@ -16,6 +16,8 @@ export function eventHandler(request: Request, response: Response) {
 
 export function postSseResponse(responseContents: any) {
 
+  console.log('invoked postSseResponse');
+  
   const responseData = 'data: ' + JSON.stringify(responseContents);
   console.log(responseData);
 

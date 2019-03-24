@@ -1,3 +1,4 @@
+import { isNil } from 'lodash';
 import { Request, Response } from 'express';
 import * as fse from 'fs-extra';
 
@@ -8,7 +9,8 @@ import {
   DbAlbum,
   GoogleAlbum,
 } from '../types';
-import { isNil } from 'lodash';
+
+import { postSseResponse } from './events';
 
 interface AlbumNames {
   googleAlbumId: string;
@@ -19,11 +21,21 @@ interface AlbumNames {
 export function start(request: Request, response: Response) {
   const promises: Array<Promise<any>> = [];
 
+  response.render('home', {
+    homeStatus: 'This is a test',
+    albumNames: [],
+  });
+
   promises.push(getGoogleAlbums());
   promises.push(getDbAlbums());
 
   Promise.all(promises).then((albumStatusResults: any[]) => {
 
+    postSseResponse({
+      homeStatus: ' ',
+      albumNames: [],
+    });
+  
     const googleAlbums: GoogleAlbum[] = albumStatusResults[0];
     const dbAlbums: DbAlbum[] = albumStatusResults[1];
 
@@ -57,9 +69,9 @@ export function start(request: Request, response: Response) {
       allAlbumNames.push(albumNames);
     });
 
-    response.render('home', {
-      albumNames: allAlbumNames,
-    });
+    // response.render('home', {
+    //   albumNames: allAlbumNames,
+    // });
   });
 }
 

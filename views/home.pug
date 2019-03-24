@@ -1,7 +1,30 @@
-extends layout
+//- extends layout
 
-block content
-  h1 PhotoJeeves
+//- block content
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/stylesheets/style.css')
+  body
+    h1 PhotoJeeves
+    p(id='homeStatusP')= 'Retrieving album information'
+
+    div(style={visibility: 'hidden'})
+      table
+        thead
+          tr
+            th Google Album Name
+            th Db Album Name
+        tbody
+          each album in albumNames
+            tr
+              td= album.googleAlbumTitle
+              td= album.dbAlbumTitle
+
+    script
+      include ../public/scripts/sse.js
+
   //- p= 'Number of media items in the database: ' + mediaItemCount
   //- p= 'Number of media items downloaded: ' + mediaItemsDownloadedCount
   //- p= 'Number of media items pending download (since last cloud check): ' + mediaItemsPendingDownloadCount
@@ -12,13 +35,13 @@ block content
   //- p=''
   //- a(href='showsAlbumsStatus') Show Albums Status
 
-  table
-    thead
-      tr
-        th Google Album Name
-        th Db Album Name
-    tbody
-      each album in albumNames
-        tr
-          td= album.googleAlbumTitle
-          td= album.dbAlbumTitle
+  //- table
+  //-   thead
+  //-     tr
+  //-       th Google Album Name
+  //-       th Db Album Name
+  //-   tbody
+  //-     each album in albumNames
+  //-       tr
+  //-         td= album.googleAlbumTitle
+  //-         td= album.dbAlbumTitle

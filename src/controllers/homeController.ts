@@ -1,8 +1,69 @@
 import { Request, Response } from 'express';
-
 import * as fse from 'fs-extra';
 
+import { getGoogleAlbums } from '../utilities/googleInterface';
+import { getDbAlbums } from '../utilities/dbInterface';
+
+import {
+  DbAlbum,
+  GoogleAlbum,
+} from '../types';
+import { isNil } from 'lodash';
+
+interface AlbumNames {
+  googleAlbumId: string;
+  googleAlbumTitle: string;
+  dbAlbumTitle: string;
+}
+
 export function start(request: Request, response: Response) {
+  const promises: Array<Promise<any>> = [];
+
+  promises.push(getGoogleAlbums());
+  promises.push(getDbAlbums());
+
+  Promise.all(promises).then((albumStatusResults: any[]) => {
+
+    const googleAlbums: GoogleAlbum[] = albumStatusResults[0];
+    const dbAlbums: DbAlbum[] = albumStatusResults[1];
+
+    const albumsById: Map<string, AlbumNames> = new Map();
+
+    googleAlbums.forEach( (googleAlbum: GoogleAlbum) => {
+      albumsById.set(googleAlbum.googleAlbumId, 
+        { 
+          googleAlbumId: googleAlbum.googleAlbumId,
+          googleAlbumTitle: googleAlbum.title,
+          dbAlbumTitle: '',
+        },
+      );
+    });
+
+    dbAlbums.forEach( (dbAlbum: DbAlbum) => {
+      const matchingAlbum: AlbumNames = albumsById.get(dbAlbum.googleId);
+      if (!isNil(matchingAlbum)) {
+        albumsById.set(matchingAlbum.googleAlbumId, 
+          { 
+            googleAlbumId: matchingAlbum.googleAlbumId,
+            googleAlbumTitle: matchingAlbum.googleAlbumTitle,
+            dbAlbumTitle: dbAlbum.title,
+          },
+        );
+      }
+    });
+
+    const allAlbumNames: AlbumNames[] = [];
+    albumsById.forEach( (albumNames: AlbumNames) => {
+      allAlbumNames.push(albumNames);
+    });
+
+    response.render('home', {
+      albumNames: allAlbumNames,
+    });
+  });
+}
+
+export function oldstart(request: Request, response: Response) {
 
   response.render('home',
     {

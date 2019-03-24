@@ -2,13 +2,23 @@ extends layout
 
 block content
   h1 PhotoJeeves
-  p= 'Number of media items in the database: ' + mediaItemCount
-  p= 'Number of media items downloaded: ' + mediaItemsDownloadedCount
-  p= 'Number of media items pending download (since last cloud check): ' + mediaItemsPendingDownloadCount
-  p= ''
-  a(href='checkForNewContent') Check cloud for updates
-  p=''
-  a(href='generateAlbumsList') Generate albums list
-  p=''
-  a(href='showsAlbumsStatus') Show Albums Status
+  //- p= 'Number of media items in the database: ' + mediaItemCount
+  //- p= 'Number of media items downloaded: ' + mediaItemsDownloadedCount
+  //- p= 'Number of media items pending download (since last cloud check): ' + mediaItemsPendingDownloadCount
+  //- p= ''
+  //- a(href='checkForNewContent') Check cloud for updates
+  //- p=''
+  //- a(href='generateAlbumsList') Generate albums list
+  //- p=''
+  //- a(href='showsAlbumsStatus') Show Albums Status
 
+  table
+    thead
+      tr
+        th Google Album Name
+        th Db Album Name
+    tbody
+      each album in albumNames
+        tr
+          td= album.googleAlbumTitle
+          td= album.dbAlbumTitle

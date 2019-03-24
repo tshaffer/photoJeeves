@@ -22,7 +22,7 @@ export function start(request: Request, response: Response) {
   const promises: Array<Promise<any>> = [];
 
   response.render('home', {
-    homeStatus: 'This is a test',
+    // homeStatus: 'This is a test',
     albumNames: [],
   });
 
@@ -31,11 +31,6 @@ export function start(request: Request, response: Response) {
 
   Promise.all(promises).then((albumStatusResults: any[]) => {
 
-    postSseResponse({
-      homeStatus: ' ',
-      albumNames: [],
-    });
-  
     const googleAlbums: GoogleAlbum[] = albumStatusResults[0];
     const dbAlbums: DbAlbum[] = albumStatusResults[1];
 
@@ -72,6 +67,13 @@ export function start(request: Request, response: Response) {
     // response.render('home', {
     //   albumNames: allAlbumNames,
     // });
+    postSseResponse({
+      homeStatus: ' ',
+      showAlbumNames: true,
+      albumNames: allAlbumNames,
+    });
+  
+
   });
 }
 

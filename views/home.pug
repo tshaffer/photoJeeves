@@ -8,10 +8,11 @@ html
     link(rel='stylesheet', href='/stylesheets/style.css')
   body
     h1 PhotoJeeves
-    p(id='homeStatusP')= 'Retrieving album information'
+    p(id='homeStatusP')= 'Retrieving album information...'
 
-    div(style={visibility: 'hidden'})
-      table
+    //- div(style={visibility: 'hidden'})
+    div#albumNamesDiv(style={visibility: 'hidden'})
+      table#albumNamesTable
         thead
           tr
             th Google Album Name

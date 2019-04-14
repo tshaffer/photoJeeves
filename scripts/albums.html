@@ -46,10 +46,6 @@
 <body id="bodyId" onload="pageLoaded()">
   <h1 style="color:white">Photo Jeeves albums</h1>
   <table id="albums">
-    <tr>
-      <th>Title</th>
-      <th>Number of Photos</th>
-    </tr>
   </table>
 </body>
 
@@ -61,7 +57,10 @@
   const albums = albumsData.ALBUM_SPECS;
 
   var bsMessagePort = new BSMessagePort();
-  var highlightedRow = 1;
+
+  var highlightedRow = 0;
+  var highlightedColumn = 0;
+  const numColumnsPerRow = 3;
 
   bsMessagePort.onbsmessage = function (msg) {
 
@@ -87,14 +86,10 @@
         bsMessagePort.PostBSMessage({ event: 'startPlayback' });
         return;
       case 'SEL':
-        console.log('play album at row index: ');
-        console.log(highlightedRow - 1);
-        const selectedAlbumIndex = highlightedRow - 1;
+        const selectedAlbumIndex = (highlightedRow * numColumnsPerRow) + highlightedColumn;
         const selectedAlbumSpec = albumsData.ALBUM_SPECS[selectedAlbumIndex];
         const event = 'playAlbum';
 
-        console.log('selectedAlbumSpec');
-        console.log(selectedAlbumSpec);
         console.log('selectedAlbumSpec');
         console.log(selectedAlbumSpec);
 
@@ -108,6 +103,12 @@
         bsMessagePort.PostBSMessage({ event: event, payload: String(payload) })
         return;
         break;
+      case 'WEST':
+        highlightedColumn--;
+        break;
+      case 'EAST':
+        highlightedColumn++;
+        break;
       case 'NORTH':
         highlightedRow = highlightedRow - 1;
         break;
@@ -120,23 +121,54 @@
     var allRows = table.getElementsByTagName('tr');
     var numberOfRows = allRows.length;
 
+    if (highlightedColumn >= numColumnsPerRow) {
+      highlightedColumn = numColumnsPerRow - 1;
+    }
+    else if (highlightedColumn < 0) {
+      highlightedColumn = 0;
+    }
+   
     if (highlightedRow >= numberOfRows) {
       highlightedRow = numberOfRows - 1;
     }
-    else if (highlightedRow < 1) {
-      highlightedRow = 1;
+    else if (highlightedRow < 0) {
+      highlightedRow = 0;
     }
 
-    highlightRow(highlightedRow);
+    highlightAlbum(highlightedRow, highlightedColumn);
   }
 
   function pageLoaded() {
     console.log('pageLoaded');
     buildAlbumsTable();
-    highlightRow(highlightedRow)
+    highlightAlbum(0, 0);
   }
 
   function buildAlbumsTable() {
+    var row;
+    var nameCell;
+    var photoCountCell;
+    var table = document.getElementById("albums");
+    var columnIndex = 0;
+
+    row = table.insertRow();
+    for (let albumIndex = 0; albumIndex < albums.length; albumIndex++) {
+
+      const album = albums[albumIndex];
+      nameCell = row.insertCell(columnIndex);
+      nameCell.innerHTML = album.title;
+
+      if (columnIndex === (numColumnsPerRow - 1)) {
+        row = table.insertRow();
+        columnIndex = 0;
+      }
+      else {
+        columnIndex++;
+      }
+    }
+  }
+
+  function oldbuildAlbumsTable() {
     var row;
     var nameCell;
     var photoCountCell;
@@ -151,32 +183,20 @@
     });
   }
 
-  function highlightRow(rowIndex) {
+  function highlightAlbum(rowIndex, columnIndex) {
+
     var table = document.getElementById('albums');
 
-    var allRows = table.getElementsByTagName('tr');
-    for (var row = 0; row < allRows.length; row++) {
-      allRows[row].style.backgroundColor = "";
-      allRows[row].classList.remove('selected');
+    var albumCells = table.getElementsByTagName('td');
+    for (var cellIndex = 0; cellIndex < albumCells.length; cellIndex++) {
+      albumCells[cellIndex].style.backgroundColor = "";
+      albumCells[cellIndex].classList.remove('selected');
     }
 
-    var selectedRow = table.getElementsByTagName('tr')[rowIndex];
-    selectedRow.style.backgroundColor = "yellow";
-    selectedRow.className += " selected";
-
-    // var myCells = selectedRow.getElementsByTagName('td');
-    // console.log('myCells');
-    // console.log(myCells);
-    // console.log(myCells.length);
-    // var selectedCell = myCells[1];
-    // selectedCell.style.backgroundColor = "yellow";
-    // selectedCell.className += " selected";
-
-    // var allCells = table.getElementsByTagName('td');
-    // console.log('allCells');
-    // console.log(allCells);
-    // console.log(allCells.length);
-
+    var selectedCellIndex = (rowIndex * 3) + columnIndex;
+    var selectedCell = albumCells[selectedCellIndex];
+    selectedCell.style.backgroundColor = "yellow";
+    selectedCell.className += " selected";
   }
 
 </script>

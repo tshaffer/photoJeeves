@@ -361,7 +361,10 @@ End Sub
 
 Sub switchAlbum(albumName As String)
   m.photoIndex% = -1
-  m.photoIds = m.photoManifest.albums[albumName]
+'  m.photoIds = m.photoManifest.albums[albumName]
+'  m.numPhotos% = m.photoIds.count()
+  albumSpec = m.photoManifest.albums[albumName]
+  m.photoIds = albumSpec.mediaItemIds
   m.numPhotos% = m.photoIds.count()
 End Sub
 

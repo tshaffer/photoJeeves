@@ -22,7 +22,12 @@
         "endpoint": {
           "sourceDir": "lambda/custom",
           "uri": "ask-custom-pj-default"
-        }
+        },
+        "interfaces": [
+          {
+            "type": "CAN_FULFILL_INTENT_REQUEST"
+          }
+        ]
       }
     },
     "manifestVersion": "1.0"

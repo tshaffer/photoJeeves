@@ -12,10 +12,7 @@ const bsnConnectorConfig = bsnConnector.bsnConnectorConfig;
 const dwsManager = require('@brightsign/bs-dws-manager');
 const getDwsConnector = dwsManager.getDwsConnector;
 
-const albumsData = require('./photoJeevesAlbums.json');
-// const albumNames = albumsData.ALBUM_SPECS.map((albumData) => {
-//   return albumData.title;
-// });
+const albumsData = require('./albumsManifest.json');
 const albumNames = [];
 const albumNamesLowerCase = [];
 albumsData.ALBUM_SPECS.forEach( (albumData) => {
@@ -82,15 +79,17 @@ const StopHandler = {
     brightSignInterface.sendPausePlayback();
 
     const speakOutput = 'pause playback';
+    const repromptOutput = requestAttributes.t('UNKNOWN_REPROMPT');
 
     sessionAttributes.speakOutput = speakOutput;
-    sessionAttributes.repromptSpeech = speakOutput;
+    sessionAttributes.repromptSpeech = repromptOutput;
 
     const cardTitle = requestAttributes.t('DISPLAY_CARD_TITLE', requestAttributes.t('SKILL_NAME'), speakOutput);
 
     return handlerInput.responseBuilder
       .speak('pause playback')
       .withSimpleCard(cardTitle, speakOutput)
+      .reprompt(repromptOutput)
       .withShouldEndSession(false)
       .getResponse();
   },
@@ -288,6 +287,9 @@ const SearchHandler = {
       console.log('validate album name');
 
       if (albumNamesLowerCase.indexOf(albumName.toLowerCase()) >= 0) {
+
+        console.log('album validated: ', albumName);;
+
         sessionAttributes.speakOutput = 'Play album ' + albumName;
         handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
 
@@ -300,6 +302,9 @@ const SearchHandler = {
           .getResponse();
       }
       else {
+
+        console.log('album not found: ', albumName);;
+
         speakOutput = requestAttributes.t('ALBUM_NOT_FOUND_MESSAGE');
         const repromptSpeech = requestAttributes.t('ALBUM_NOT_FOUND_REPROMPT');
         speakOutput += requestAttributes.t('ALBUM_NOT_FOUND_WITH_ITEM_NAME', albumName);
@@ -335,6 +340,27 @@ const SessionEndedRequestHandler = {
   },
 };
 
+const CFIRErrorHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === `CanFulfillIntentRequest`;
+  },
+  handle(handlerInput, error) {
+    console.log(`CFIR Error handled: ${error.message}`);
+
+    return handlerInput.responseBuilder
+      .withCanFulfillIntent(
+        {
+          "canFulfill": "NO",
+          "slots":{
+              "Query": {
+                  "canUnderstand": "NO",
+                  "canFulfill": "NO"
+                }
+            }
+        })
+      .getResponse();
+  },}
+
 const ErrorHandler = {
   canHandle() {
     return true;
@@ -357,6 +383,7 @@ const languageStrings = {
       SKILL_NAME: 'Photo Jeeves',
       WELCOME_MESSAGE: 'Welcome to %s. You can say, play album followed by the album name ... Now, what can I help you with?',
       WELCOME_REPROMPT: 'For instructions on what you can say, please say help me.',
+      UNKNOWN_REPROMPT: 'Reprompt - unknown.',
       DISPLAY_CARD_TITLE: '%s  - Album named %s.',
       HELP_MESSAGE: 'You can say play album followed by the album name, or, you can say exit...Now, what can I help you with?',
       HELP_REPROMPT: 'Hey, you can say play album followed by the album name, or you can say exit...Now, what can I help you with?',
@@ -410,7 +437,10 @@ exports.handler = skillBuilder
     SessionEndedRequestHandler
   )
   .addRequestInterceptors(LocalizationInterceptor)
-  .addErrorHandlers(ErrorHandler)
+  .addErrorHandlers(
+    CFIRErrorHandler,
+    ErrorHandler
+  )
   .lambda();
 
 // code to use preview server via BrightSign packages rather than via http

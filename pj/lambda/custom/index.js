@@ -95,6 +95,19 @@ const StopHandler = {
   },
 };
 
+/*
+      .withCanFulfillIntent(
+        {
+          "canFulfill": "YES",
+          "slots": {
+            "Query": {
+              "canUnderstand": "YES",
+              "canFulfill": "YES"
+            }
+          }
+        })
+*/
+
 const CFIRResumeHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'CanFulfillIntentRequest'
@@ -109,13 +122,7 @@ const CFIRResumeHandler = {
     return handlerInput.responseBuilder
       .withCanFulfillIntent(
         {
-          "canFulfill": "YES",
-          "slots": {
-            "Query": {
-              "canUnderstand": "YES",
-              "canFulfill": "YES"
-            }
-          }
+          "canFulfill": "YES"
         })
       .getResponse();
 
@@ -371,6 +378,20 @@ const SessionEndedRequestHandler = {
   },
 };
 
+/*
+      .withCanFulfillIntent(
+        {
+          "canFulfill": "NO",
+          "slots": {
+            "Query": {
+              "canUnderstand": "NO",
+              "canFulfill": "NO"
+            }
+          }
+        })
+      .getResponse();
+*/
+
 const CFIRErrorHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === `CanFulfillIntentRequest`;
@@ -381,13 +402,7 @@ const CFIRErrorHandler = {
     return handlerInput.responseBuilder
       .withCanFulfillIntent(
         {
-          "canFulfill": "NO",
-          "slots": {
-            "Query": {
-              "canUnderstand": "NO",
-              "canFulfill": "NO"
-            }
-          }
+          "canFulfill": "NO"
         })
       .getResponse();
   },

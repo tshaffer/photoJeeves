@@ -20,10 +20,9 @@ evtSource.onmessage = function (e) {
 
   var albumNamesDiv = document.getElementById('albumNamesDiv');
   if (messageData.showAlbumNames) {
+
     albumNamesDiv.style.visibility = 'visible';
-    /*
-     https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Traversing_an_HTML_table_with_JavaScript_and_DOM_Interfaces
-    */
+
     var albumNamesTable = document.getElementById('albumNamesTable');
     var tblBody = document.createElement("tbody");
 
@@ -45,8 +44,7 @@ evtSource.onmessage = function (e) {
       tblBody.appendChild(albumRow);
 
     });
-
-    // put the <tbody> in the <table>
+    
     albumNamesTable.appendChild(tblBody);
   }
   else {

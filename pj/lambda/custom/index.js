@@ -15,7 +15,7 @@ const getDwsConnector = dwsManager.getDwsConnector;
 const albumsData = require('./albumsManifest.json');
 const albumNames = [];
 const albumNamesLowerCase = [];
-albumsData.ALBUM_SPECS.forEach( (albumData) => {
+albumsData.ALBUM_SPECS.forEach((albumData) => {
   albumNames.push(albumData.title);
   albumNamesLowerCase.push(albumData.title.toLowerCase());
 })
@@ -92,6 +92,37 @@ const StopHandler = {
       .reprompt(repromptOutput)
       .withShouldEndSession(false)
       .getResponse();
+  },
+};
+
+const CFIRResumeHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'CanFulfillIntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === 'ResumeIntent';
+  },
+  handle(handlerInput) {
+    const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
+    const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+
+    console.log("in CFIRResumeHandler ");
+
+    return handlerInput.responseBuilder
+      .withCanFulfillIntent(
+        {
+          "canFulfill": "YES",
+          "slots": {
+            "Query": {
+              "canUnderstand": "YES",
+              "canFulfill": "YES"
+            }
+          }
+        })
+      .getResponse();
+
+      // return handlerInput.responseBuilder
+      // .speak(speechoutput)
+      // .reprompt(speechoutput)
+      // .getResponse();
   },
 };
 
@@ -351,15 +382,16 @@ const CFIRErrorHandler = {
       .withCanFulfillIntent(
         {
           "canFulfill": "NO",
-          "slots":{
-              "Query": {
-                  "canUnderstand": "NO",
-                  "canFulfill": "NO"
-                }
+          "slots": {
+            "Query": {
+              "canUnderstand": "NO",
+              "canFulfill": "NO"
             }
+          }
         })
       .getResponse();
-  },}
+  },
+}
 
 const ErrorHandler = {
   canHandle() {
@@ -426,6 +458,7 @@ exports.handler = skillBuilder
   .addRequestHandlers(
     LaunchRequestHandler,
     StopHandler,
+    CFIRResumeHandler,
     ResumeHandler,
     RewindHandler,
     ListAlbumsHandler,

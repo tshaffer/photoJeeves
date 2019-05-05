@@ -1,0 +1,20 @@
+{
+  "name": "bs-voice",
+  "description": "<>",
+  "repository": "<>",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "mqtt": "^2.18.8"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "4.5.1",
+    "webpack": "2.6.1",
+    "zip-webpack-plugin": "1.1.0"
+  },
+  "scripts": {
+    "build": "webpack --config webpack.config.js"
+  },
+  "author": "",
+  "license": "UNLICENSED"
+}

@@ -70,7 +70,7 @@ Function processEvent(event As Object) as boolean
         probability = json.intent.confidenceScore
         print "=== intentParsed:";intentName
         print "probability: ";probability
-        retval = parseearPhrase(m, intentName, probability, json)
+        retval = parsePhrase(m, intentName, probability, json)
 
       else if (result.event = "startListening") then'
         v = "Start-Listening"
@@ -110,120 +110,31 @@ Function processEvent(event As Object) as boolean
 End Function
 
 
-Function parseearPhrase(h as object, intent as string, likelihood as float, json as object) as boolean
-  id = "-1"
+Function parsePhrase(h as object, intent as string, likelihood as float, json as object) as boolean
+
+  print "******** parsePhrase, type(json):"
+  print type(json)
+  print "******** intent"
+  print intent
+
+  command$ = ""
 
   if likelihood > .79 then
-    if intent = "Aaron:what_should_I_bu" then
-      id = "What-Should-I-Buy"
-    else if intent = "Aaron:shopping_party" then
-      id = "Shopping-Party"
-    else if intent = "Aaron:amazon_meow" then
-      id = "Meow"
-    else if intent = "Aaron:joke_demo" then
-      print type(json.slots)
-      if json.slots.count() = 0 then
-        value = ""
-        id = "Joke"
-        print "No slot value defined: ";id
-      else if json.slots.count() > 0 then
-        value = json.slots[0].value.value
-      end if
-      if value = "How Many" then
-        id = "How-Many-Best-Buy-Joke"
-      else if value = "Geek Squad" then
-        id = "Geek-Squad-Joke"
-      else if value = "Best Buy" then
-        id = "Best-Buy-Joke"
-      end if
-    else if intent = "Aaron:music_by_genre" then
-      id = "Playlist-Classical-Music"
-    else if intent = "Aaron:timer" then
-      id = "Time-Three-Seconds"
-    else if intent = "Aaron:life_in_the_cloud" then
-      id = "Life-In-The-Cloud"
-    else if intent = "Aaron:turn_on_the_fan" then
-      id = "Turn-On-The-Fan"
-    else if intent = "Aaron:music_by_song" then
-      id = "Play-Song-Thunder-Imagine-Dragons"
-    else if intent = "Aaron:shirt_color" then
-      id = "What-Color-Shirt"
-    else if intent = "Aaron:light_demo" then
-      print type(json.slots)
-      if json.slots.count() = 0 then
-        value = ""
-        id = "-1"
-        print "No slot value defined: ";id
-      else if json.slots.count() > 0 then
-        value = json.slots[0].value.value
-      end if
-      if value = "blue" then
-        id = "blue"
-      else if value = "bright" then
-        id = "bright"
-      else if value = "dim" then
-        id = "dim"
-      else if value = "pink" then
-        id = "pink"
-      else if value = "white" then
-        id = "white"
-      else if value = "purple" then
-        id = "purple"
-      else if value = "red" then
-        id = "red"
-      else if value = "yellow" then
-        id = "yellow"
-      else if value = "green" then
-        id = "green"
-      else if value = "off" then
-        id = "off"
-      else if value = "on" then
-        id = "on"
-      end if
-    else if intent = "Aaron:what_is_demo" then
-      print type(json.slots)
-      if json.slots.count() = 0 then
-        value = ""
-        id = "-1"
-        print "No slot value defined: ";id
-      else if json.slots.count() > 0 then
-        value = json.slots[0].value.value
-      end if
-      if value = "Amazon Echo" then
-        id = "What-Is-Amazon-Echo"
-      else if value = "Echo Show" then
-        id = "What-Is-Echo-Show"
-      else if value = "Echo Dot" then
-        id = "What-Is-Echo-Dot"
-      end if
-    else if intent = "Aaron:whats_new" then
-      id = "What-Is-New"
-    else if intent = "Aaron:demo_rap" then
-      id = "Can-You-Rap"
-    else if intent = "Aaron:are_you_listening" then
-      id = "Are-You-Listening"
-    else if intent = "Aaron:music_play_list" then
-      if json.slots.count() = 0 then
-        value = ""
-        id = "-1"
-        print "No slot value defined: ";id
-      else if json.slots.count() > 0 then
-        value = json.slots[0].value.value
-      end if
-      if value = "favorite" then
-        id = "Playlist-Favorite"
-      else if value = "party" then
-        id = "Playlist-Party"
-      end if
+    if intent = "&KV4lavkZXDmNqwJXzB52DWmBwMLegAM6Oyr2o1PE:ListAlbums" then
+      command$ = "ListAlbums"
+    else if intent = "&KV4lavkZXDmNqwJXzB52DWmBwMLegAM6Oyr2o1PE:Resume" then
+      command$ = "Resume"
+    else if intent = "&KV4lavkZXDmNqwJXzB52DWmBwMLegAM6Oyr2o1PE:pause" then
+      command$ = "Pause"
+    else if intent = "&KV4lavkZXDmNqwJXzB52DWmBwMLegAM6Oyr2o1PE:rewind" then
+      command$ = "Rewind"
     else
       print "=== Could not understand phrase!"
     end if
   else
     print "=== likelihood is not > .79, unable to accept!"
   end if
-  id = id.trim()
   print "=== likelihood; ";likelihood
-  print "=== id: ";id
-  print "=== Successfully sent to BrightAuthor"
+  print "=== command: ";command$
   return true
 End Function
